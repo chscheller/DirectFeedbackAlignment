@@ -1,5 +1,6 @@
 import numpy as np
 
+from network.activation import Activation
 from network.layer import Layer
 
 
@@ -8,20 +9,17 @@ def tanh_d(x):
 
 
 class Convolution(Layer):
-    def __init__(self, filter_shape, stride, padding, activation=np.tanh, activation_d=tanh_d, last_layer=False) -> None:
-        """
-        :type activation_d: Any
-        """
+    def __init__(self, filter_shape, stride, padding, dropout_rate: float=0, activation: Activation=None, last_layer=False) -> None:
         assert len(filter_shape) == 4, \
             "invalid filter shape: 4-tuple required, {}-tuple given".format(len(filter_shape))
-        self.activation = activation
-        self.activation_d = activation_d
-        self.last_layer = last_layer
         self.filter_shape = filter_shape
         self.stride = stride
         self.padding = padding
+        self.dropout_rate = dropout_rate
+        self.activation = activation
+        self.last_layer = last_layer
 
-    def initialize(self, input_size, out_layer_size, train_method) -> tuple:
+    def initialize(self, input_size, num_classes, train_method) -> tuple:
         assert np.size(input_size) == 3, \
             "invalid input size: 3-tuple required for convolution layer"
 
@@ -42,9 +40,9 @@ class Convolution(Layer):
         self.b = np.ones(f)
 
         if train_method == 'dfa':
-            self.B = np.ndarray((out_layer_size, f, h_out, w_out))
+            self.B = np.ndarray((num_classes, f, h_out, w_out))
             for i in range(f):
-                b = np.random.uniform(low=0.0, high=2.0, size=(out_layer_size, h_out, w_out))
+                b = np.random.uniform(low=0.0, high=2.0, size=(num_classes, h_out, w_out))
                 self.B[:, i] = b - np.mean(b)
         elif train_method == 'bp':
             for i in range(f):
@@ -54,7 +52,7 @@ class Convolution(Layer):
 
         return f, h_out, w_out
 
-    def forward(self, X) -> np.ndarray:
+    def forward(self, X, mode='predict') -> np.ndarray:
         n_in, c, h_in, w_in = X.shape
         n_f, c, h_f, w_f = self.W.shape
 
@@ -81,42 +79,47 @@ class Convolution(Layer):
                         self.W[j], axis=(1, 2, 3)) + self.b[j]
 
         self.a_in = X
-        self.a_out = self.activation(z)
+        self.a_out = z if self.activation is None else self.activation.forward(z)
+        if mode == 'train' and self.dropout_rate > 0:
+            self.dropout_mask = np.random.binomial(size=self.a_out.shape, n=1, p=1 - self.dropout_rate)
+            self.a_out *= self.dropout_mask
         return self.a_out
 
-    def dfa(self, e, reg, lr) -> Layer:
-        E = np.einsum('ij,jklm->iklm', e, self.B)
+    def dfa(self, E: np.ndarray) -> tuple:
+        E = np.einsum('ij,jklm->iklm', E, self.B)
+
+        if self.dropout_rate > 0:
+            E *= self.dropout_mask
 
         n_f, c_f, h_f, w_f = self.W.shape
         n_e, c_e, h_e, w_e = E.shape
 
-        delta = E * self.activation_d(self.a_out)
+        delta = E * (self.a_out if self. activation is None else self.activation.backward(self.a_out))
         X_padded = np.lib.pad(self.a_in, ((0, 0), (0, 0), (self.padding, self.padding), (self.padding, self.padding)),
                               'constant', constant_values=0)
 
         dW = np.zeros(self.W.shape)
+        db = np.sum(E, axis=(0, 2, 3))
 
         for h in range(h_e):
             for w in range(w_e):
                 dW += np.tensordot(delta[:, :, h, w].T, X_padded[:, :, h * self.stride:h * self.stride + h_f,
                                                         w * self.stride:w * self.stride + w_f], axes=([-1], [0]))
 
-        dW += reg * self.W  # todo: DROPOUT??!
-        db = np.sum(E, axis=(0, 2, 3))
+        return dW, db
 
-        self.W += -lr * dW
-        self.b += -lr * db
+    def back_prob(self, E: np.ndarray) -> tuple:
 
-        return self
+        if self.dropout_rate > 0:
+            E *= self.dropout_mask
 
-    def back_prob(self, E, reg, lr) -> np.ndarray:
         n_f, c_f, h_f, w_f = self.W.shape
         n_e, c_e, h_e, w_e = E.shape
 
         dX = np.zeros(self.a_in.shape)
         dW = np.zeros(self.W.shape)
 
-        delta = E * self.activation_d(self.a_out)
+        delta = E * (self.a_out if self. activation is None else self.activation.backward(self.a_out))
         X_padded = np.lib.pad(self.a_in, ((0, 0), (0, 0), (self.padding, self.padding), (self.padding, self.padding)),
                               'constant', constant_values=0)
         dX_padded = np.lib.pad(dX, ((0, 0), (0, 0), (self.padding, self.padding), (self.padding, self.padding)),
@@ -149,13 +152,10 @@ class Convolution(Layer):
                 )
 
         dX = dX_padded[:, :, self.padding:-self.padding, self.padding:-self.padding]
-        dW += reg * self.W
         db = np.sum(E, axis=(0, 2, 3))
 
-        self.W += -lr * dW
-        self.b += -lr * db
+        return dX, dW, db
 
-        return dX
+    def has_weights(self) -> bool:
+        return True
 
-    def sum_weights(self) -> int:
-        return np.square(self.W).sum()

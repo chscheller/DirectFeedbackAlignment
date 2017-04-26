@@ -10,7 +10,7 @@ class CallDFA(object):
         self.lr = lr
 
     def __call__(self, layer):
-        return layer.dfa(self.e, self.reg, self.lr)
+        return layer.dfa(self.e)
 
 
 class Network(object):
@@ -40,7 +40,7 @@ class Network(object):
     def loss(self, X, y, reg):
         train_size = X.shape[0]
         for layer in self.layers:
-            X = layer.forward(X)
+            X = layer.forward(X, mode='predict')
         correct_logprobs = -np.log(X[range(train_size), y])
         data_loss = np.sum(correct_logprobs)
         total_weight = 0
@@ -68,7 +68,7 @@ class Network(object):
 
                 start = time.time()
                 for layer in self.layers:
-                    X_batch = layer.forward(X_batch)
+                    X_batch = layer.forward(X_batch, mode='train')
                 probs = X_batch
                 forward_time += time.time() - start
 
@@ -85,7 +85,7 @@ class Network(object):
                 else:
                     delta = X_batch
                     for layer in reversed(self.layers):
-                        delta = layer.back_prob(delta, reg, lr)
+                        delta = layer.back_prob(delta)
                 update_time += time.time() - start
 
             total_time += time.time() - start_total
@@ -105,5 +105,5 @@ class Network(object):
 
     def predict(self, x):
         for layer in self.layers:
-            x = layer.forward(x)
+            x = layer.forward(x, mode='predict')
         return np.argmax(x, axis=1)

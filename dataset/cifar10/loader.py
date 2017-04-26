@@ -42,9 +42,9 @@ class Cifar10(object):
         labels = np.zeros(shape=self.train_size, dtype=int)
         start = 0
         for i in range(self.train_files):
-            file_path = os.path.join(self.data_path, "data_batch_".format(i + 1))
+            file_path = os.path.join(self.data_path, "data_batch_{}".format(i + 1))
             images_batch, labels_batch = self.__load_file(file_path)
-            size = images.shape[0]
+            size = images_batch.shape[0]
             images[start:start + size] = images_batch
             labels[start:start + size] = labels_batch
             start = start + size
