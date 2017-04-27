@@ -32,14 +32,14 @@ if __name__ == '__main__':
     #X_test, y_test = cifar.load_test_set()
 
     layers = [
-        MaxPool(size=2, stride=2),
-        Convolution((1, 1, 3, 3), 1, 1, 0, activation=activation.tanh),
-        MaxPool(size=2, stride=2),
-        # Convolution((3, 1, 3, 3), 1, 1, 0, activation=activation.tanh),
-        # Convolution((3, 3, 3, 3), 1, 1, 0.5, activation=activation.tanh),
         # MaxPool(size=2, stride=2),
-        # Convolution((1, 3, 3, 3), 1, 1, 0.5, activation=activation.tanh),
+        # Convolution((1, 1, 3, 3), 1, 1, 0, activation=activation.tanh),
         # MaxPool(size=2, stride=2),
+        Convolution((3, 1, 3, 3), 1, 1, 0, activation=activation.tanh),
+        Convolution((3, 3, 3, 3), 1, 1, 0.5, activation=activation.tanh),
+        MaxPool(size=2, stride=2),
+        Convolution((1, 3, 3, 3), 1, 1, 0.5, activation=activation.tanh),
+        MaxPool(size=2, stride=2),
         ConvToFullyConnected(),
         FullyConnected(size=10, activation=None, last_layer=True)
     ]
@@ -53,5 +53,5 @@ if __name__ == '__main__':
     X_check = np.zeros((1, 1, 28, 28))
     X_check[0,:,:,:] = X[0]
     y_check = y[0]
-    model.gradient_check(X_check, y_check, method='bp')
-    #model.train(X, y, num_passes=10, batch_size=256, method='bp')
+    # model.gradient_check(X_check, y_check, method='bp')
+    model.train(X, y, num_passes=10, batch_size=256, method='bp')

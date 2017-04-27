@@ -45,7 +45,7 @@ class Model(object):
         self.regularization = regularization
         self.loss = loss
 
-    def validate(self, X, y):
+    def cost(self, X, y):
         n = X.shape[0]
 
         """ forward pass """
@@ -101,7 +101,6 @@ class Model(object):
             for layer in reversed(self.layers):
                 dX, dW, _ = layer.back_prob(dX)
                 if layer.has_weights():
-                    W_orig_shape = layer.W.shape
                     W_orig = layer.W.copy()
                     W_unrolled = np.reshape(layer.W, -1)
                     dW_unrolled = dW.reshape(-1)
@@ -109,14 +108,14 @@ class Model(object):
                     for i in range(dW_unrolled.size):
                         wPlus = W_unrolled.copy()
                         wPlus[i] += epsilon
-                        layer.W = wPlus.reshape(W_orig_shape)
-                        costPlus = calc_cost(x_in)
+                        layer.W = wPlus.reshape(W_orig.shape)
+                        costPlus = self.cost(x_in, y)
                         wMinus = W_unrolled.copy()
                         wMinus[i] -= epsilon
-                        layer.W = wMinus.reshape(W_orig_shape)
-                        costMinus = calc_cost(x_in)
-                        layer.W = W_orig
+                        layer.W = wMinus.reshape(W_orig.shape)
+                        costMinus = self.cost(x_in, y)
                         dW_approx[i] = (costPlus - costMinus) / (2. * epsilon)
+                    layer.W = W_orig
                     print('calculated: {}', dW_unrolled)
                     print('approx: {}', dW_approx)
                     print("relative difference {}".format(np.linalg.norm(dW_approx - dW_unrolled)/np.linalg.norm(dW_approx + dW_unrolled)))
