@@ -5,9 +5,11 @@ from network.layer import Layer
 
 
 class FullyConnected(Layer):
-    def __init__(self, size: int, dropout_rate: float=0, activation: Activation=None, last_layer=False):
+    def __init__(self, size: int, dropout_rate: float=0, batch_norm: bool=False, activation: Activation=None, last_layer=False):
+        super().__init__()
         self.size = size
         self.dropout_rate = dropout_rate
+        self.batch_norm = batch_norm
         self.activation = activation
         self.last_layer = last_layer
 

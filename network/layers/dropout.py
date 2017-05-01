@@ -6,6 +6,7 @@ from network.layer import Layer
 class Dropout(Layer):
 
     def __init__(self, rate=0.5) -> None:
+        super().__init__()
         self.rate = rate
 
     def initialize(self, input_size, out_layer_size, train_method) -> tuple:

@@ -9,13 +9,15 @@ def tanh_d(x):
 
 
 class Convolution(Layer):
-    def __init__(self, filter_shape, stride, padding, dropout_rate: float=0, activation: Activation=None, last_layer=False) -> None:
+    def __init__(self, filter_shape, stride, padding, dropout_rate: float=0, batch_norm: bool=False, activation: Activation=None, last_layer=False) -> None:
         assert len(filter_shape) == 4, \
             "invalid filter shape: 4-tuple required, {}-tuple given".format(len(filter_shape))
+        super().__init__()
         self.filter_shape = filter_shape
         self.stride = stride
         self.padding = padding
         self.dropout_rate = dropout_rate
+        self.batch_norm = batch_norm
         self.activation = activation
         self.last_layer = last_layer
 
@@ -81,7 +83,8 @@ class Convolution(Layer):
         self.a_in = X
         self.a_out = z if self.activation is None else self.activation.forward(z)
         if mode == 'train' and self.dropout_rate > 0:
-            self.dropout_mask = np.random.binomial(size=self.a_out.shape, n=1, p=1 - self.dropout_rate)
+            # self.dropout_mask = np.random.binomial(size=self.a_out.shape, n=1, p=1 - self.dropout_rate)
+            self.dropout_mask = (np.random.rand(*self.a_out.shape) > self.dropout_rate).astype(int)
             self.a_out *= self.dropout_mask
         return self.a_out
 

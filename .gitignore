@@ -39,3 +39,9 @@ tmtagsHistory
 *.sublime-project
 *.sublime-workspace
 .bundle
+
+# Project specific
+build/
+*.prof
+*.c
+*.pyd
