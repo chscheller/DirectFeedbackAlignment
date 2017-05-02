@@ -16,20 +16,38 @@ class DFA(object):
         self.e = e
 
     def __call__(self, layer: Layer) -> tuple:
-        return (layer,) + layer.dfa(self.e)
+        dW, db = layer.dfa(self.e)
+        # print("dW: {}, db: {}".format(dW, db))
+        # return (layer,) + layer.dfa(self.e)
+        return layer, dW, db
 
 
 class UpdateLayer(object):
     def __init__(self, optimizer: Optimizer) -> None:
         self.optimizer = optimizer
 
-    def __call__(self, gradients: np.ndarray) -> Layer:
+    def __call__(self, gradients: tuple) -> Layer:
         layer, dW, db = gradients
         if layer.has_weights():
             return self.optimizer.update(layer, dW, db)
         else:
             return layer
 
+
+class Back(object):
+    def __init__(self, delta, reg, optim: Optimizer) -> None:
+        self.optim = optim
+        self.reg = reg
+        self.delta = delta
+
+    def __call__(self, layer) -> Layer:
+        if layer.has_weights():
+            dW, db = layer.dfa(self.delta)
+            if self.reg > 0:
+                dW += self.reg * layer.W
+            return self.optim.update(layer, dW, db)
+        else:
+            return layer
 
 class Model(object):
     def __init__(
@@ -167,7 +185,8 @@ class Model(object):
                 start_backward_time = time.time()
                 if self.method == 'dfa':
                     # gradients = pool.map(DFA(delta), self.layers)
-                    for layer in reversed(self.layers):
+                    # self.layers = pool.map(Back(delta, self.regularization, self.optimizer), self.layers)
+                    for layer in self.layers:
                         dW, db = layer.dfa(delta)
                         gradients.append((layer, dW, db))
                 else:
@@ -185,11 +204,8 @@ class Model(object):
                             dW += self.regularization * layer.W
 
                 """ update """
-                # self.layers = pool.map(UpdateLayer(self.optimizer), gradients)
-                # self.layers = map(UpdateLayer(self.optimizer), gradients)
-                optim = UpdateLayer(self.optimizer)
-                for gradient in gradients:
-                    optim(gradient)
+                update = UpdateLayer(self.optimizer)
+                self.layers = [update(x) for x in gradients]
 
                 print("loss on train set after iteration {}, batch {}: {}".format(epoch, batch_no, loss))
                 train_losses.append(loss)

@@ -35,16 +35,16 @@ class Convolution(Layer):
         assert (w_in - w_f + 2 * self.padding) % self.stride == 0, \
             "filter height ({}) not compatible with input height ({})".format(h_f, h_in)
 
-        h_out = ((h_in - h_f + 2 * self.padding) // self.stride) + 1
-        w_out = ((w_in - w_f + 2 * self.padding) // self.stride) + 1
+        self.h_out = ((h_in - h_f + 2 * self.padding) // self.stride) + 1
+        self.w_out = ((w_in - w_f + 2 * self.padding) // self.stride) + 1
 
         self.W = np.zeros(self.filter_shape)
         self.b = np.ones(f)
 
         if train_method == 'dfa':
-            self.B = np.ndarray((num_classes, f, h_out, w_out))
+            self.B = np.ndarray((num_classes, f, self.h_out, self.w_out))
             for i in range(f):
-                b = np.random.uniform(low=0.0, high=2.0, size=(num_classes, h_out, w_out))
+                b = np.random.uniform(low=0.0, high=2.0, size=(num_classes, self.h_out, self.w_out))
                 self.B[:, i] = b - np.mean(b)
         elif train_method == 'bp':
             for i in range(f):
@@ -52,16 +52,13 @@ class Convolution(Layer):
         else:
             raise "invalid train method '{}'".format(train_method)
 
-        return f, h_out, w_out
+        return f, self.h_out, self.w_out
 
     def forward(self, X, mode='predict') -> np.ndarray:
         n_in, c, h_in, w_in = X.shape
         n_f, c, h_f, w_f = self.W.shape
 
-        h_out = ((h_in - h_f + 2 * self.padding) // self.stride) + 1
-        w_out = ((w_in - w_f + 2 * self.padding) // self.stride) + 1
-
-        z = np.zeros((n_in, n_f, h_out, w_out))
+        z = np.zeros((n_in, n_f, self.h_out, self.w_out))
 
         x_padded = np.lib.pad(X, ((0, 0), (0, 0), (self.padding, self.padding), (self.padding, self.padding)),
                               'constant', constant_values=0)
@@ -73,8 +70,8 @@ class Convolution(Layer):
         #                z[i, j, h, w] = np.sum(x_padded[i, :, h * self.stride:h * self.stride + h_f,
         #                                        w * self.stride:w * self.stride + w_f] * self.W[j]) + self.b[j]
 
-        for h in range(h_out):
-            for w in range(w_out):
+        for h in range(self.h_out):
+            for w in range(self.w_out):
                 for j in range(n_f):  # for each filter
                     z[:, j, h, w] = np.sum(
                         x_padded[:, :, h * self.stride:h * self.stride + h_f, w * self.stride:w * self.stride + w_f] *

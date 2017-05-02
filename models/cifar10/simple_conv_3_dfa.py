@@ -10,10 +10,13 @@ from network.optimizer import GDOptimizer, GDMomentumOptimizer
 
 def simple_conv_3_dfa():
     """
-    time spend during forward pass: 513.1842727661133
-    time spend during backward pass: 318.94739842414856
-    time spend in total: 982.727705001831
-    accuracy: 0.1604
+    epochs: 20
+    lr: 0.0001
+    reg: 0.0001
+    time spend during forward pass: 929.4512648582458
+    time spend during backward pass: 559.0829327106476
+    time spend in total: 1751.968334197998
+    accuracy: 0.2697
     """
     # Load train data
     cifar = Cifar10('dataset/cifar10')
@@ -39,10 +42,8 @@ def simple_conv_3_dfa():
         regularization=0.0001
     )
 
-    # X = X[0:500, :, :, :]
-    # y = y[0:500]
-
-    model.train(X, y, num_passes=10, batch_size=512)
+    model.train(X, y, num_passes=1, batch_size=256)
     model.test(X_test, y_test)
 
     return model
+
