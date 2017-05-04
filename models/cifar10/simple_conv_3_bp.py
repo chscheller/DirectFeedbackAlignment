@@ -41,6 +41,14 @@ def simple_conv_3_bp():
     time spend during backward pass: 1160.7256309986115
     time spend in total: 2400.925891160965
     accuracy: 0.2164
+    --------
+    epochs: 20 (minibatch 256)
+    lr: 0.01
+    reg: 0.0001
+    time spend during forward pass: 1095.9451744556427
+    time spend during backward pass: 1263.3119111061096
+    time spend in total: 2729.118192911148
+    accuracy: 0.2951
     """
     # Load train data
     cifar = Cifar10('dataset/cifar10')
@@ -61,8 +69,7 @@ def simple_conv_3_bp():
         layers=layers,
         input_size=(3, 32, 32),
         num_classes=10,
-        optimizer=GDMomentumOptimizer(lr=0.0001, mu=0.9),
-        # optimizer=GDOptimizer(lr=0.001),
+        optimizer=GDMomentumOptimizer(lr=0.01, mu=0.9),
         method='bp',
         regularization=0.0001
     )

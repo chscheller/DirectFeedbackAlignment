@@ -14,7 +14,7 @@ if __name__ == '__main__':
     # model = simple_conv_3_dfa()
 
     """ simple_conv_3_do """
-    model = simple_conv_3_do_bp()
+    # model = simple_conv_3_do_bp()
 
     """ simple_conv_100 """
     # model = simple_conv_100_bp()

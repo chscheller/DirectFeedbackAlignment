@@ -17,6 +17,14 @@ def simple_conv_3_dfa():
     time spend during backward pass: 559.0829327106476
     time spend in total: 1751.968334197998
     accuracy: 0.2697
+    --------
+    epochs: 20
+    lr: 0.01
+    reg: 0.0001
+    time spend during forward pass: 1132.449740409851
+    time spend during backward pass: 518.5944745540619
+    time spend in total: 2037.055358171463
+    accuracy: 0.3226
     """
     # Load train data
     cifar = Cifar10('dataset/cifar10')
@@ -37,12 +45,12 @@ def simple_conv_3_dfa():
         layers=layers,
         input_size=(3, 32, 32),
         num_classes=10,
-        optimizer=GDMomentumOptimizer(lr=0.0001, mu=0.9),
+        optimizer=GDMomentumOptimizer(lr=0.01, mu=0.9),
         method='dfa',
         regularization=0.0001
     )
 
-    model.train(X, y, num_passes=1, batch_size=256)
+    model.train(X, y, num_passes=20, batch_size=256)
     model.test(X_test, y_test)
 
     return model

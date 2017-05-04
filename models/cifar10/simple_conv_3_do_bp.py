@@ -30,10 +30,15 @@ def simple_conv_3_do_bp():
         num_classes=10,
         optimizer=GDMomentumOptimizer(lr=0.01, mu=0.9),
         method='bp',
-        regularization=0.0001
+        # regularization=0.0001
     )
 
-    model.train(X, y, num_passes=20, batch_size=256)
+    #X = X[0:25, :, :, :]
+    #y = y[0:25]
+#
+    #model.train(X, y, num_passes=150, batch_size=20)
+
+    model.train(X, y, num_passes=1, batch_size=256)
     model.test(X_test, y_test)
 
     return model
