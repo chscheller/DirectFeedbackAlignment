@@ -4,9 +4,8 @@ from network.activation import Activation
 from network.layer import Layer
 from network.utils.im2col_cython import im2col_cython, col2im_cython
 
-
 class Convolution(Layer):
-    def __init__(self, filter_shape, stride, padding, dropout_rate: float = 0, batch_norm: bool=False, activation: Activation = None,
+    def __init__(self, filter_shape, stride, padding, dropout_rate: float = 0, activation: Activation = None,
                  last_layer=False) -> None:
         assert len(filter_shape) == 4, \
             "invalid filter shape: 4-tuple required, {}-tuple given".format(len(filter_shape))
@@ -15,7 +14,6 @@ class Convolution(Layer):
         self.stride = stride
         self.padding = padding
         self.dropout_rate = dropout_rate
-        self.batch_norm = batch_norm
         self.activation = activation
         self.last_layer = last_layer
 
@@ -40,13 +38,18 @@ class Convolution(Layer):
         self.b = np.zeros(f)
 
         if train_method == 'dfa':
-            self.B = np.ndarray((num_classes, f, self.h_out, self.w_out))
-            for i in range(f):
-                b = np.random.uniform(low=0.0, high=2.0, size=(num_classes, self.h_out, self.w_out))
-                self.B[:, i] = b - np.mean(b)
+            sqrt_fan_out = np.sqrt(num_classes * f * h_f * w_f)
+            self.B = np.random.uniform(low=-1/sqrt_fan_out, high=1/sqrt_fan_out, size=(num_classes, f, self.h_out, self.w_out))
+            # self.B = np.ndarray((num_classes, f, self.h_out, self.w_out))
+            # sqrt_fan_out = np.sqrt(h_f * w_f)
+            # for i in range(f):
+            #     b = np.random.uniform(low=-1/sqrt_fan_out, high=1/sqrt_fan_out, size=(num_classes, self.h_out, self.w_out))
+            #     self.B[:, i] = b - np.mean(b)
         elif train_method == 'bp':
-            for i in range(f):
-                self.W[i] = np.random.randn(c_f, h_f, w_f) / np.sqrt(c_f * h_f * w_f)
+            sqrt_fan_in = np.sqrt(c_in * h_in * w_in)
+            self.W = np.random.uniform(low=-1/sqrt_fan_in, high=1/sqrt_fan_in, size=(f, c_f, h_f, w_f))
+            # for i in range(f):
+            #     self.W[i] = np.random.randn(c_f, h_f, w_f) / np.sqrt(c_f * h_f * w_f)
         else:
             raise "invalid train method '{}'".format(train_method)
 
@@ -78,11 +81,9 @@ class Convolution(Layer):
 
         n_f, c_f, h_f, w_f = self.W.shape
 
-        delta = E * (self.a_out if self. activation is None else self.activation.backward(self.a_out))
+        delta = E * (self.a_out if self.activation is None else self.activation.backward(self.a_out))
 
-        delta_reshaped = delta.transpose((1, 2, 3, 0)).reshape(n_f, -1)
-        dW = delta_reshaped.dot(self.x_cols.T).reshape(self.W.shape)
-
+        dW = delta.transpose((1, 2, 3, 0)).reshape(n_f, -1).dot(self.x_cols.T).reshape(self.W.shape)
         db = np.sum(E, axis=(0, 2, 3))
 
         return dW, db
@@ -94,18 +95,15 @@ class Convolution(Layer):
         n_in, c_in, h_in, w_in = self.a_in.shape
         n_f, c_f, h_f, w_f = self.W.shape
 
-        delta = E * (self.a_out if self. activation is None else self.activation.backward(self.a_out))
-
+        delta = E * (self.a_out if self.activation is None else self.activation.backward(self.a_out))
         delta_reshaped = delta.transpose((1, 2, 3, 0)).reshape(n_f, -1)
-        dW = delta_reshaped.dot(self.x_cols.T).reshape(self.W.shape)
 
         dX_cols = self.W.reshape(n_f, -1).T.dot(delta_reshaped)
         dX = col2im_cython(dX_cols, n_in, c_in, h_in, w_in, h_f, w_f, self.padding, self.stride)
-
+        dW = delta_reshaped.dot(self.x_cols.T).reshape(self.W.shape)
         db = np.sum(E, axis=(0, 2, 3))
 
         return dX, dW, db
 
     def has_weights(self) -> bool:
         return True
-

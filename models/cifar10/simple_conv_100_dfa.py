@@ -7,6 +7,7 @@ from network.layers.max_pool import MaxPool
 from network.model import Model
 from network.optimizer import GDOptimizer, GDMomentumOptimizer
 
+import numpy as np
 
 def simple_conv_100_dfa():
 
@@ -15,11 +16,11 @@ def simple_conv_100_dfa():
     X, y = cifar.load_train_set()
     X_test, y_test = cifar.load_test_set()
 
+    # np.random.seed(0)
+
     layers = [
         Convolution((3, 3, 3, 3), stride=1, padding=1, dropout_rate=0, activation=activation.tanh),
-        MaxPool(size=2, stride=2),
         Convolution((3, 3, 3, 3), stride=1, padding=1, dropout_rate=0, activation=activation.tanh),
-        MaxPool(size=2, stride=2),
         Convolution((3, 3, 3, 3), stride=1, padding=1, dropout_rate=0, activation=activation.tanh),
         Convolution((3, 3, 3, 3), stride=1, padding=1, dropout_rate=0, activation=activation.tanh),
         Convolution((3, 3, 3, 3), stride=1, padding=1, dropout_rate=0, activation=activation.tanh),
@@ -34,6 +35,7 @@ def simple_conv_100_dfa():
         Convolution((3, 3, 3, 3), stride=1, padding=1, dropout_rate=0, activation=activation.tanh),
         Convolution((3, 3, 3, 3), stride=1, padding=1, dropout_rate=0, activation=activation.tanh),
         Convolution((3, 3, 3, 3), stride=1, padding=1, dropout_rate=0, activation=activation.tanh),
+
         Convolution((3, 3, 3, 3), stride=1, padding=1, dropout_rate=0, activation=activation.tanh),
         Convolution((3, 3, 3, 3), stride=1, padding=1, dropout_rate=0, activation=activation.tanh),
         Convolution((3, 3, 3, 3), stride=1, padding=1, dropout_rate=0, activation=activation.tanh),
@@ -114,11 +116,6 @@ def simple_conv_100_dfa():
         Convolution((3, 3, 3, 3), stride=1, padding=1, dropout_rate=0, activation=activation.tanh),
         Convolution((3, 3, 3, 3), stride=1, padding=1, dropout_rate=0, activation=activation.tanh),
         Convolution((3, 3, 3, 3), stride=1, padding=1, dropout_rate=0, activation=activation.tanh),
-        Convolution((3, 3, 3, 3), stride=1, padding=1, dropout_rate=0, activation=activation.tanh),
-        Convolution((3, 3, 3, 3), stride=1, padding=1, dropout_rate=0, activation=activation.tanh),
-        Convolution((3, 3, 3, 3), stride=1, padding=1, dropout_rate=0, activation=activation.tanh),
-        Convolution((3, 3, 3, 3), stride=1, padding=1, dropout_rate=0, activation=activation.tanh),
-        MaxPool(size=2, stride=2),
         ConvToFullyConnected(),
         FullyConnected(size=10, activation=None, last_layer=True)
     ]
@@ -127,15 +124,20 @@ def simple_conv_100_dfa():
         layers=layers,
         input_size=(3, 32, 32),
         num_classes=10,
-        optimizer=GDMomentumOptimizer(lr=0.1, mu=0.9),
+        optimizer=GDMomentumOptimizer(lr=0.01, mu=0.9),
         method='dfa',
-        regularization=0
+        regularization=0.0001,
+        # lr_decay=0.5,
+        # lr_decay_interval=100
     )
 
-    # X = X[0:100, :, :, :]
-    # y = y[0:100]
+    # X = X[0:25, :, :, :]
+    # y = y[0:25]
 
-    model.train(X, y, num_passes=5, batch_size=256)
+    # model.train(X, y, num_passes=2000, batch_size=20)#
+    # model.test(X, y)
+
+    model.train(X, y, num_passes=10, batch_size=64)
     model.test(X_test, y_test)
 
     return model
