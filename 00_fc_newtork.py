@@ -16,14 +16,14 @@ from network.optimizer import GDMomentumOptimizer
 
 if __name__ == '__main__':
     """
-    Train statisistics DFA:
+    Train statistics DFA:
     ------------------------------------
     time spend during forward pass: 186.65376925468445
     time spend during backward pass: 196.10941076278687
     time spend during update pass: 144.07492351531982
     time spend in total: 752.406553030014
     
-    Train statisistics BP:
+    Train statistics BP:
     ------------------------------------
     time spend during forward pass: 187.12717700004578
     time spend during backward pass: 331.23116517066956
