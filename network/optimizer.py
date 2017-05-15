@@ -34,13 +34,25 @@ class GDMomentumOptimizer(Optimizer):
 
     def update(self, layer: Layer, dW: np.ndarray, db: np.ndarray) -> Layer:
 
-        if not layer.has_param('mv'):
-            layer.set_param('mv', (np.zeros(dW.shape), np.zeros(db.shape)))
+        mv = layer.get_param('mv')
 
-        v_dW, v_db = layer.get_param('mv')
+        if mv is None:
+            mv = (np.zeros(dW.shape), np.zeros(db.shape))
+            layer.set_param('mv', mv)
 
-        v_dW = self.mu * v_dW - self.lr * dW
-        v_db = self.mu * v_db - self.lr * db
+        # v_dW, v_db = mv#
+        # v_dW = self.mu * v_dW - self.lr * dW
+        # v_db = self.mu * v_db - self.lr * db
+
+        v_dW, v_db = mv
+
+        dW *= self.lr
+        db *= self.lr
+
+        v_dW *= self.mu
+        v_dW -= dW
+        v_db *= self.mu
+        v_db -= db
 
         layer.W += v_dW
         layer.b += v_db

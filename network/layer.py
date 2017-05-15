@@ -1,3 +1,5 @@
+from collections import defaultdict
+
 import numpy as np
 
 
@@ -5,7 +7,7 @@ class Layer:
 
     def __init__(self) -> None:
         super().__init__()
-        self.params = dict()
+        self.params = defaultdict(lambda: None)
 
     def initialize(self, input_size: tuple, num_classes: int, train_method: str) -> tuple:
         pass
@@ -30,6 +32,3 @@ class Layer:
 
     def set_param(self, key: any, value) -> None:
         self.params[key] = value
-
-    def has_param(self, key: any) -> bool:
-        return key in self.params.keys()

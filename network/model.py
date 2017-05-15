@@ -133,9 +133,9 @@ class Model(object):
 
         if verbose:
             print(
-                'train method: {}'
-                'num_passes: {}'
-                'batch:size: {}'
+                '\ntrain method: {}'.format(method),
+                '\nnum_passes: {}'.format(num_passes),
+                '\nbatch_size: {}\n'.format(batch_size)
             )
 
         statistics = {
@@ -158,7 +158,6 @@ class Model(object):
         """ initalize layers """
         input_size = X_train[0].shape
         for layer in self.layers:
-            print(input_size)
             input_size = layer.initialize(input_size, self.num_classes, method)
 
         step = 0
@@ -221,7 +220,7 @@ class Model(object):
                 self.optimizer.decay_learning_rate(self.lr_decay)
 
                 if verbose:
-                    print("Decreased learning rate by".format(self.lr_decay))
+                    print("Decreased learning rate by {}".format(self.lr_decay))
 
             """ log statistics """
             valid_loss, valid_accuracy = self.cost(X_valid, y_valid)

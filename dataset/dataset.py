@@ -14,7 +14,7 @@ class DataSet(object):
         return self.train
 
     def validation_set(self):
-        return self.train
+        return self.validation
 
     def test_set(self):
         return self.test
