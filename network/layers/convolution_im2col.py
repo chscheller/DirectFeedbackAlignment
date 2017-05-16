@@ -60,7 +60,8 @@ class Convolution(Layer):
         n_f, c, h_f, w_f = self.W.shape
 
         self.x_cols = im2col_cython(X, h_f, w_f, self.padding, self.stride)
-        z = self.W.reshape((n_f, -1)).dot(self.x_cols) + self.b.reshape(-1, 1)
+        z = self.W.reshape((n_f, -1)).dot(self.x_cols)
+        z += self.b.reshape(-1, 1)
         z = z.reshape(n_f, self.h_out, self.w_out, n_in).transpose(3, 0, 1, 2)
 
         self.a_in = X
@@ -81,9 +82,13 @@ class Convolution(Layer):
 
         n_f, c_f, h_f, w_f = self.W.shape
 
-        delta = E * (self.a_out if self.activation is None else self.activation.backward(self.a_out))
+        if self.activation is None:
+            E *= self.a_out
+        else:
+            E *= self.activation.backward(self.a_out)
+        # delta = E * (self.a_out if self.activation is None else self.activation.backward(self.a_out))
 
-        dW = delta.transpose((1, 2, 3, 0)).reshape(n_f, -1).dot(self.x_cols.T).reshape(self.W.shape)
+        dW = E.transpose((1, 2, 3, 0)).reshape(n_f, -1).dot(self.x_cols.T).reshape(self.W.shape)
         db = np.sum(E, axis=(0, 2, 3))
 
         return dW, db
@@ -95,8 +100,12 @@ class Convolution(Layer):
         n_in, c_in, h_in, w_in = self.a_in.shape
         n_f, c_f, h_f, w_f = self.W.shape
 
-        delta = E * (self.a_out if self.activation is None else self.activation.backward(self.a_out))
-        delta_reshaped = delta.transpose((1, 2, 3, 0)).reshape(n_f, -1)
+        if self.activation is None:
+            E *= self.a_out
+        else:
+            E *= self.activation.backward(self.a_out)
+        # delta = E * (self.a_out if self.activation is None else self.activation.backward(self.a_out))
+        delta_reshaped = E.transpose((1, 2, 3, 0)).reshape(n_f, -1)
 
         dX_cols = self.W.reshape(n_f, -1).T.dot(delta_reshaped)
         dX = col2im_cython(dX_cols, n_in, c_in, h_in, w_in, h_f, w_f, self.padding, self.stride)
