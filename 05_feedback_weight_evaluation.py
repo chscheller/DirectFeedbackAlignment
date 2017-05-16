@@ -15,11 +15,11 @@ if __name__ == '__main__':
     num_hidden_units = 240
 
     initializers = [
-        weight_initializer.Fill(1),
-        weight_initializer.Fill(100),
+        #weight_initializer.Fill(1),
+        #weight_initializer.Fill(100),
         weight_initializer.RandomUniform(-1, 1),
-        weight_initializer.RandomUniform(-1/np.sqrt(num_hidden_units), 1/np.sqrt(num_hidden_units)),
-        weight_initializer.RandomUniform(-100, 100),
+        weight_initializer.RandomUniform(int(-1/np.sqrt(num_hidden_units)), int(1/np.sqrt(num_hidden_units))),
+        # weight_initializer.RandomUniform(-100, 100),
         weight_initializer.RandomNormal(),
         weight_initializer.RandomNormal(1/np.sqrt(num_hidden_units)),
     ]

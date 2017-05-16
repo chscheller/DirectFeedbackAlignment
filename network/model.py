@@ -162,6 +162,14 @@ class Model(object):
 
         step = 0
         for epoch in range(num_passes):
+
+            """ decay learning rate if necessary """
+            if self.lr_decay > 0 and epoch > 0 and (epoch % self.lr_decay_interval) == 0:
+                self.optimizer.decay_learning_rate(self.lr_decay)
+
+                if verbose:
+                    print("Decreased learning rate by {}".format(self.lr_decay))
+
             for batch in data.mini_batches(X_train, y_train, batch_size):
                 X_batch, y_batch = batch
 
@@ -214,13 +222,6 @@ class Model(object):
                     print("epoch {}, step {}, loss = {:07.5f}, accuracy = {}".format(epoch, step, loss, accuracy))
 
                 step += 1
-
-            """ decay learning rate if necessary """
-            if self.lr_decay > 0 and epoch > 0 and (epoch % self.lr_decay_interval) == 0:
-                self.optimizer.decay_learning_rate(self.lr_decay)
-
-                if verbose:
-                    print("Decreased learning rate by {}".format(self.lr_decay))
 
             """ log statistics """
             valid_loss, valid_accuracy = self.cost(X_valid, y_valid)
