@@ -15,18 +15,18 @@ if __name__ == '__main__':
     num_hidden_units = 240
 
     initializers = [
-        #weight_initializer.Fill(1),
-        #weight_initializer.Fill(100),
-        weight_initializer.RandomUniform(-1/np.sqrt(num_hidden_units), 1/np.sqrt(num_hidden_units)),
         weight_initializer.RandomUniform(-1, 1),
         weight_initializer.RandomUniform(-100, 100),
-        weight_initializer.RandomNormal(),
-        weight_initializer.RandomNormal(1/np.sqrt(num_hidden_units)),
+    ]
+
+    lrs = [
+        1e-2,
+        1e-4
     ]
 
     statistics = []
 
-    for initializer in initializers:
+    for initializer, lr in zip(initializers, lrs):
         layers = [
             ConvToFullyConnected(),
             FullyConnected(size=num_hidden_units, activation=activation.tanh, fb_weight_initializer=initializer),
@@ -42,7 +42,7 @@ if __name__ == '__main__':
         model = Model(
             layers=layers,
             num_classes=10,
-            optimizer=GDMomentumOptimizer(lr=1e-4, mu=0.9),
+            optimizer=GDMomentumOptimizer(lr=lr, mu=0.9),
             regularization=0.001,
             # lr_decay=0.5,
             # lr_decay_interval=100
@@ -55,7 +55,7 @@ if __name__ == '__main__':
         print("\nRun training:\n------------------------------------")
 
         data = mnist_dataset.load('dataset/mnist')
-        stats = model.train(data_set=data, method='dfa', num_passes=10, batch_size=50)
+        stats = model.train(data_set=data, method='dfa', num_passes=3, batch_size=50)
         loss, accuracy = model.cost(*data.test_set())
 
         print("\nResult:\n------------------------------------")
@@ -72,8 +72,8 @@ if __name__ == '__main__':
         stats = statistics[i]
         plt.plot(np.arange(len(stats['train_loss'])), stats['train_loss'])
         plt.plot(stats['valid_step'], stats['valid_loss'])
-        labels.append("{}: train loss".format(initializers[i]))
-        labels.append("{}: validation loss".format(initializers[i]))
+        labels.append("{}, lr={}: train loss".format(initializers[i], lrs[i]))
+        labels.append("{}, lr={}: validation loss".format(initializers[i], lrs[i]))
     plt.legend(labels, loc='upper right')
     plt.grid(True)
     plt.show()
@@ -85,8 +85,8 @@ if __name__ == '__main__':
         stats = statistics[i]
         plt.plot(np.arange(len(stats['train_accuracy'])), stats['train_accuracy'])
         plt.plot(stats['valid_step'], stats['valid_accuracy'])
-        labels.append("{}: train accuracy".format(initializers[i]))
-        labels.append("{}: validation accuracy".format(initializers[i]))
+        labels.append("{}, lr={}: train accuracy".format(initializers[i], lrs[i]))
+        labels.append("{}, lr={}: validation accuracy".format(initializers[i], lrs[i]))
     plt.legend(labels, loc='upper right')
     plt.grid(True)
     plt.show()

@@ -23,7 +23,7 @@ class Fill(WeightInitializer):
 
 class RandomUniform(WeightInitializer):
 
-    def __init__(self, low: int, high: int) -> None:
+    def __init__(self, low: float, high: float) -> None:
         self.low = low
         self.high = high
 
@@ -31,7 +31,7 @@ class RandomUniform(WeightInitializer):
         return np.random.uniform(low=self.low, high=self.high, size=dim)
 
     def __str__(self):
-        return "RandomUniform(low={}, high={})".format(self.low, self.high)
+        return "Uniform(low={}, high={})".format(self.low, self.high)
 
 
 class RandomNormal(WeightInitializer):
@@ -44,4 +44,4 @@ class RandomNormal(WeightInitializer):
         return self.sigma * np.random.randn(*dim) + self.mu
 
     def __str__(self):
-        return "RandomNormal(sigma={}, mu={})".format(self.sigma, self.mu)
+        return "Normal(sigma={}, mu={})".format(self.sigma, self.mu)
