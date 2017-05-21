@@ -203,9 +203,14 @@ class Model(object):
 
                 """ regularization (L2) """
                 if self.regularization > 0:
+                    reg_term = 0
                     for layer, dW, db in gradients:
                         if layer.has_weights():
                             dW += self.regularization * layer.W
+                            reg_term += np.sum(np.square(layer.W))
+                    reg_term *= self.regularization / 2.
+                    reg_term /= y_batch.shape[0]
+                    loss += reg_term
 
                 """ update """
                 start_update_time = time.time()

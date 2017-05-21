@@ -14,35 +14,34 @@ def forward(X: np.ndarray, W: np.ndarray, b: np.ndarray) -> np.ndarray:
 
 class FullyConnected(Layer):
     def __init__(self, size: int, dropout_rate: float=0, batch_norm: bool=False, activation: Activation=None,
-                 last_layer=False, fb_weight_initializer=weight_initializer.RandomUniform(low=-1, high=1)):
+                 last_layer=False, weight_initializer=None, fb_weight_initializer=None):
         super().__init__()
         self.size = size
         self.dropout_rate = dropout_rate
         self.batch_norm = batch_norm
         self.activation = activation
         self.last_layer = last_layer
+        self.weight_initializer = weight_initializer
         self.fb_weight_initializer = fb_weight_initializer
 
     def initialize(self, input_size: int, num_classes: int, train_method: str) -> int:
         assert np.size(input_size) == 1, \
             "invalid input size: scalar required for fully connected layer"
 
-        self.b = np.zeros(self.size)
-        self.W = np.zeros((input_size, self.size))
-
-        if train_method == 'dfa':
-            # self.B = np.random.uniform(low=0.0, high=2.0, size=(num_classes, self.size))
-            # self.B = self.B - np.mean(self.B)
-            # sqrt_fan_out = np.sqrt(self.size)
-            # sqrt_fan_out = 1
-            # self.B = np.random.uniform(low=-1/sqrt_fan_out, high=1/sqrt_fan_out, size=(num_classes, self.size))
-            self.B = self.fb_weight_initializer.init(dim=(num_classes, self.size))
-        elif train_method == 'bp':
-            # self.W = np.random.randn(input_size, self.size) / np.sqrt(input_size)
-            sqrt_fan_in = np.sqrt(input_size)
-            self.W = np.random.uniform(low=-1/sqrt_fan_in, high=1/sqrt_fan_in, size=(input_size, self.size))
+        # initialize weights
+        if self.weight_initializer is None:
+            self.W = np.random.uniform(low=-1 / np.sqrt(input_size), high=1 / np.sqrt(input_size), size=(input_size, self.size))
         else:
-            raise "invalid train method '{}'".format(train_method)
+            self.W = self.weight_initializer.init(dim=(input_size, self.size))
+
+        # initialize feedback weights
+        if self.fb_weight_initializer is None:
+            self.B = np.random.uniform(low=-1, high=1, size=(num_classes, self.size))
+        else:
+            self.B = self.fb_weight_initializer.init(dim=(num_classes, self.size))
+
+        # initialize bias units
+        self.b = np.zeros(self.size)
 
         return self.size
 
