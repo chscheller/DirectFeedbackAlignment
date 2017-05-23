@@ -17,25 +17,7 @@ from network.optimizer import GDMomentumOptimizer
 
 if __name__ == '__main__':
     """
-    Train statistics DFA:
-    ------------------------------------
-    time spend during forward pass: 186.65376925468445
-    time spend during backward pass: 196.10941076278687
-    time spend during update pass: 144.07492351531982
-    time spend in total: 752.406553030014
-    
-    Train statistics BP:
-    ------------------------------------
-    time spend during forward pass: 187.12717700004578
-    time spend during backward pass: 331.23116517066956
-    time spend during update pass: 152.84005665779114
-    time spend in total: 911.1534883975983
-    
-    
-    
-    Initial learning rate, regularization and learning rate decay parameters were evaluated
-    by hand by comparing the training performance on the validation set for various 
-    parameter combinations
+    Comparison of training only: validation / test not relevant
     """
     freeze_support()
 
@@ -59,10 +41,9 @@ if __name__ == '__main__':
     model = Model(
         layers=layers,
         num_classes=10,
-        optimizer=GDMomentumOptimizer(lr=3*1e-3, mu=0.9),
-        regularization=0.09,
+        optimizer=GDMomentumOptimizer(lr=1e-3, mu=0.9),
         lr_decay=0.5,
-        lr_decay_interval=3
+        lr_decay_interval=5
     )
 
     print("\nRun training:\n------------------------------------")
@@ -88,12 +69,9 @@ if __name__ == '__main__':
     model = Model(
         layers=layers,
         num_classes=10,
-        optimizer=GDMomentumOptimizer(lr=1e-3, mu=0.9),
-        regularization=0.003,
-        # optimizer=GDMomentumOptimizer(lr=1e-2, mu=0.9),
-        # regularization=0.0015,
+        optimizer=GDMomentumOptimizer(lr=1e-2, mu=0.9),
         lr_decay=0.5,
-        lr_decay_interval=3
+        lr_decay_interval=10
     )
 
     print("\nRun training:\n------------------------------------")
