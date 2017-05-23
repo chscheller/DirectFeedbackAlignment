@@ -49,7 +49,7 @@ if __name__ == '__main__':
 
     freeze_support()
 
-    num_iteration = 15
+    num_iteration = 1
 
     data = dataset.cifar10_dataset.load()
 
@@ -89,15 +89,15 @@ if __name__ == '__main__':
     model = Model(
         layers=layers,
         num_classes=10,
-        optimizer=GDMomentumOptimizer(lr=1e-2, mu=0.9),
+        optimizer=GDMomentumOptimizer(lr=1.5*1e-2, mu=0.9),
         # regularization=0.001,
         lr_decay=0.5,
-        lr_decay_interval=7
+        lr_decay_interval=3
     )
 
     print("\nRun training:\n------------------------------------")
 
-    stats_dfa = model.train(data_set=data, method='dfa', num_passes=num_iteration, batch_size=64)
+    stats_dfa = model.train(data_set=data, method='bp', num_passes=num_iteration, batch_size=64)
     loss, accuracy = model.cost(*data.test_set())
 
     print("\nResult:\n------------------------------------")
@@ -119,7 +119,7 @@ if __name__ == '__main__':
     # plt.legend(['train loss dfa', 'validation loss dfa'], loc='upper right')
     # plt.grid(True)
     # plt.show()
-#
+
     # plt.title('Accuracy')
     # plt.xlabel('epoch')
     # plt.ylabel('accuracy')
@@ -128,8 +128,8 @@ if __name__ == '__main__':
     # plt.legend(['train accuracy dfa', 'validation accuracy dfa'], loc='lower right')
     # plt.grid(True)
     # plt.show()
-#
-    # exit()
+
+    exit()
 
     # -------------------------------------------------------
     # Train with BP

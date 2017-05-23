@@ -3,33 +3,29 @@ from multiprocessing import freeze_support
 import matplotlib.pyplot as plt
 import numpy as np
 
-import dataset.cifar10_dataset
 import dataset.mnist_dataset
-
-from network import activation, weight_initializer
+from network import activation
 from network.layers.conv_to_fully_connected import ConvToFullyConnected
-from network.layers.convolution_im2col import Convolution
-from network.layers.dropout import Dropout
 from network.layers.fully_connected import FullyConnected
-from network.layers.max_pool import MaxPool
 from network.model import Model
 from network.optimizer import GDMomentumOptimizer
 
 if __name__ == '__main__':
     freeze_support()
 
-    colors = [ ('azure', 'darkblue'), ('red', 'maroon'), ('goldenrod', 'orangered'), ('green', 'darkgreen'), ('purple', 'magenta')]
+    colors = [('deepskyblue', 'darkblue'), ('red', 'maroon'), ('goldenrod', 'sienna'), ('limegreen', 'darkgreen'),
+              ('purple', 'magenta'), ('gray', 'black')]
     depths = [10, 15, 20, 30, 50, 100]
     iterations = [5, 5, 5, 10, 15, 20]
-    iterations = [1, 1, 1, 1, 1, 1]
+    iterations = [2] * 6
 
     data = dataset.mnist_dataset.load('dataset/mnist')
     statistics = []
 
-    for depth, iter in zip(depths, iterations):
-        layers = [ ConvToFullyConnected()] + \
-                 [ FullyConnected(size=240, activation=activation.tanh) for _ in range(depth) ] + \
-                 [ FullyConnected(size=10, activation=None, last_layer=True) ]
+    for depth, num_passes in zip(depths, iterations):
+        layers = [ConvToFullyConnected()] + \
+                 [FullyConnected(size=240, activation=activation.tanh) for _ in range(depth)] + \
+                 [FullyConnected(size=10, activation=None, last_layer=True)]
 
         """ DFA """
 
@@ -44,7 +40,7 @@ if __name__ == '__main__':
 
         print("\nRun training:\n------------------------------------")
 
-        stats_dfa = model.train(data_set=data, method='dfa', num_passes=iter, batch_size=64)
+        stats_dfa = model.train(data_set=data, method='dfa', num_passes=num_passes, batch_size=64)
         loss, accuracy = model.cost(*data.test_set())
 
         print("\nResult:\n------------------------------------")
@@ -72,7 +68,7 @@ if __name__ == '__main__':
 
         print("\nRun training:\n------------------------------------")
 
-        stats_bp = model.train(data_set=data, method='bp', num_passes=iter, batch_size=64)
+        stats_bp = model.train(data_set=data, method='bp', num_passes=num_passes, batch_size=64)
         loss, accuracy = model.cost(*data.test_set())
 
         print("\nResult:\n------------------------------------")
@@ -87,7 +83,6 @@ if __name__ == '__main__':
         print("time spend in total: {}".format(stats_bp['total_time']))
 
         statistics.append((stats_dfa, stats_bp))
-
 
     plt.title('Loss function')
     plt.xlabel('epoch')
