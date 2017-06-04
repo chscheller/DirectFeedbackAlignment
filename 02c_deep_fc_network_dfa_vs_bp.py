@@ -2,6 +2,8 @@ from multiprocessing import freeze_support
 
 import matplotlib.pyplot as plt
 import numpy as np
+import scipy.ndimage.filters
+import scipy.interpolate
 
 import dataset.mnist_dataset
 from network import activation
@@ -13,11 +15,18 @@ from network.optimizer import GDMomentumOptimizer
 if __name__ == '__main__':
     freeze_support()
 
-    colors = [('deepskyblue', 'darkblue'), ('red', 'maroon'), ('goldenrod', 'sienna'), ('limegreen', 'darkgreen'),
-              ('purple', 'magenta'), ('gray', 'black')]
-    depths = [10, 15, 20, 30, 50, 100]
-    iterations = [5, 5, 5, 10, 15, 20]
-    iterations = ([2] * 5) + [4]
+    # colors = [('deepskyblue', 'darkblue'), ('red', 'maroon'), ('goldenrod', 'sienna'), ('limegreen', 'darkgreen'),
+    #           ('purple', 'magenta'), ('gray', 'black')]
+    # depths = [10, 15, 20, 30, 50, 100]
+    # iterations = ([2] * 5) + [4]
+
+    colors = [('blue', 'blue'), ('red', 'red'), ('green', 'green'), ('orange', 'orange'), ('black', 'black')]
+    depths = [10, 15, 20, 50, 100]
+    iterations = ([4] * 5)
+
+    # colors = [('blue', 'blue')]
+    # depths = [20]
+    # iterations = [20]
 
     data = dataset.mnist_dataset.load('dataset/mnist')
     statistics = []
@@ -33,9 +42,6 @@ if __name__ == '__main__':
             layers=layers,
             num_classes=10,
             optimizer=GDMomentumOptimizer(lr=1e-3, mu=0.9),
-            regularization=0.001,
-            # lr_decay=0.5,
-            # lr_decay_interval=100
         )
 
         print("\nRun training:\n------------------------------------")
@@ -60,10 +66,7 @@ if __name__ == '__main__':
         model = Model(
             layers=layers,
             num_classes=10,
-            optimizer=GDMomentumOptimizer(lr=1e-2, mu=0.9),
-            regularization=0.001,
-            # lr_decay=0.5,
-            # lr_decay_interval=100
+            optimizer=GDMomentumOptimizer(lr=1e-2, mu=0.9)
         )
 
         print("\nRun training:\n------------------------------------")
@@ -92,13 +95,15 @@ if __name__ == '__main__':
         stats_dfa = stats[0]
         color_bp = color[1]
         stats_bp = stats[1]
-        plt.plot(np.arange(len(stats_dfa['train_loss'])), stats_dfa['train_loss'], color=color_dfa)
-        plt.plot(np.arange(len(stats_bp['train_loss'])), stats_bp['train_loss'], color=color_bp)
+        dfa_train_loss = scipy.ndimage.filters.gaussian_filter1d(stats_dfa['train_loss'], sigma=10)
+        bp_train_loss = scipy.ndimage.filters.gaussian_filter1d(stats_bp['train_loss'], sigma=10)
+        plt.plot(np.arange(len(stats_dfa['train_loss'])), dfa_train_loss, color=color_dfa)
+        plt.plot(np.arange(len(stats_bp['train_loss'])), bp_train_loss, linestyle='--', color=color_bp)
     legends = []
     for depth in depths:
         legends.append('{}xfc tanh, train loss dfa'.format(depth))
         legends.append('{}xfc tanh, train loss bp'.format(depth))
-    plt.legend(legends, loc='best')
+    plt.legend(legends, loc='upper right')
     plt.grid(True)
     plt.show()
 
@@ -110,12 +115,14 @@ if __name__ == '__main__':
         stats_dfa = stats[0]
         color_bp = color[1]
         stats_bp = stats[1]
-        plt.plot(np.arange(len(stats_dfa['train_accuracy'])), stats_dfa['train_accuracy'], color=color_dfa)
-        plt.plot(np.arange(len(stats_bp['train_accuracy'])), stats_bp['train_accuracy'], color=color_bp)
+        dfa_train_accuracy = scipy.ndimage.filters.gaussian_filter1d(stats_dfa['train_accuracy'], sigma=10)
+        bp_train_accuracy = scipy.ndimage.filters.gaussian_filter1d(stats_bp['train_accuracy'], sigma=10)
+        plt.plot(np.arange(len(stats_dfa['train_accuracy'])), dfa_train_accuracy, color=color_dfa)
+        plt.plot(np.arange(len(stats_bp['train_accuracy'])), bp_train_accuracy, linestyle='--', color=color_bp)
     legends = []
     for depth in depths:
         legends.append('{}xfc tanh, train accuracy dfa'.format(depth))
         legends.append('{}xfc tanh, train accuracy bp'.format(depth))
-    plt.legend(legends, loc='best')
+    plt.legend(legends, loc='lower right')
     plt.grid(True)
     plt.show()

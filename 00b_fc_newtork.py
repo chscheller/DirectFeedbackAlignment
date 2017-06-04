@@ -2,6 +2,8 @@ from multiprocessing import freeze_support
 
 import matplotlib.pyplot as plt
 import numpy as np
+import scipy.ndimage.filters
+import scipy.interpolate
 
 import dataset.cifar10_dataset
 
@@ -13,11 +15,16 @@ from network.optimizer import GDMomentumOptimizer
 
 if __name__ == '__main__':
     """
-    Goal: same as 00_fc_network but comparison of training only: validation / test not relevant
+    Goal: Compare DFA and BP training performances with respect to train loss, train accuracy and 
+    training time on a fully connected NN
+    
+    Initial learning rate and learning rate decay parameters were evaluated  by hand by comparing the training 
+    performance on the training set for various 
+    parameter combinations
     """
     freeze_support()
 
-    num_iteration = 20
+    num_iteration = 25
     data = dataset.cifar10_dataset.load()
 
     layers = [
@@ -58,6 +65,24 @@ if __name__ == '__main__':
     print("time spend during update pass: {}".format(stats_dfa['update_time']))
     print("time spend in total: {}".format(stats_dfa['total_time']))
 
+    # plt.title('Loss function')
+    # plt.xlabel('epoch')
+    # plt.ylabel('loss')
+    # plt.plot(np.arange(len(stats_dfa['train_loss'])), stats_dfa['train_loss'])
+    # plt.legend(['train loss dfa'], loc='best')
+    # plt.grid(True)
+    # plt.show()
+
+    # plt.title('Accuracy')
+    # plt.xlabel('epoch')
+    # plt.ylabel('accuracy')
+    # plt.plot(np.arange(len(stats_dfa['train_accuracy'])), stats_dfa['train_accuracy'])
+    # plt.legend(['train accuracy dfa'], loc='best')
+    # plt.grid(True)
+    # plt.show()
+
+    # exit()
+
     # -------------------------------------------------------
     # Train with BP
     # -------------------------------------------------------
@@ -67,7 +92,7 @@ if __name__ == '__main__':
         num_classes=10,
         optimizer=GDMomentumOptimizer(lr=1e-2, mu=0.9),
         lr_decay=0.5,
-        lr_decay_interval=10
+        lr_decay_interval=5
     )
 
     print("\nRun training:\n------------------------------------")
@@ -86,49 +111,80 @@ if __name__ == '__main__':
     print("time spend during update pass: {}".format(stats_bp['update_time']))
     print("time spend in total: {}".format(stats_bp['total_time']))
 
-    plt.title('Loss function')
+    # plt.title('Loss function')
+    # plt.xlabel('epoch')
+    # plt.ylabel('loss')
+    # plt.plot(np.arange(len(stats_bp['train_loss'])), stats_bp['train_loss'])
+    # plt.legend(['train loss bp'], loc='best')
+    # plt.grid(True)
+    # plt.show()
+
+    # plt.title('Accuracy')
+    # plt.xlabel('epoch')
+    # plt.ylabel('accuracy')
+    # plt.plot(np.arange(len(stats_bp['train_accuracy'])), stats_bp['train_accuracy'])
+    # plt.legend(['train accuracy bp'], loc='best')
+    # plt.grid(True)
+    # plt.show()
+
+    # exit()
+
+    plt.title('Loss vs epoch')
     plt.xlabel('epoch')
     plt.ylabel('loss')
-    plt.plot(np.arange(len(stats_dfa['train_loss'])), stats_dfa['train_loss'])
-    plt.plot(stats_dfa['valid_step'], stats_dfa['valid_loss'])
-    plt.plot(np.arange(len(stats_bp['train_loss'])), stats_bp['train_loss'])
-    plt.plot(stats_bp['valid_step'], stats_bp['valid_loss'])
-    plt.legend(['train loss dfa', 'validation loss dfa', 'train loss bp', 'validation loss bp'], loc='upper right')
+    # plt.plot(np.arange(len(stats_dfa['train_loss'])), stats_dfa['train_loss'])
+    # plt.plot(np.arange(len(stats_bp['train_loss'])), stats_bp['train_loss'])
+    dfa_train_loss = scipy.ndimage.filters.gaussian_filter1d(stats_dfa['train_loss'], sigma=10)
+    bp_train_loss = scipy.ndimage.filters.gaussian_filter1d(stats_bp['train_loss'], sigma=10)
+    plt.plot(np.arange(len(stats_dfa['train_loss'])), dfa_train_loss)
+    plt.plot(np.arange(len(stats_bp['train_loss'])), bp_train_loss)
+    plt.legend(['train loss dfa', 'train loss bp'], loc='best')
     plt.grid(True)
     plt.show()
 
-    plt.title('Accuracy')
+    plt.title('Accuracy vs epoch')
     plt.xlabel('epoch')
     plt.ylabel('accuracy')
-    plt.plot(np.arange(len(stats_dfa['train_accuracy'])), stats_dfa['train_accuracy'])
-    plt.plot(stats_dfa['valid_step'], stats_dfa['valid_accuracy'])
-    plt.plot(np.arange(len(stats_bp['train_accuracy'])), stats_bp['train_accuracy'])
-    plt.plot(stats_bp['valid_step'], stats_bp['valid_accuracy'])
-    plt.legend(['train accuracy dfa', 'validation accuracy dfa', 'train accuracy bp', 'validation accuracy bp'], loc='lower right')
+    # plt.plot(np.arange(len(stats_dfa['train_accuracy'])), stats_dfa['train_accuracy'])
+    # plt.plot(np.arange(len(stats_bp['train_accuracy'])), stats_bp['train_accuracy'])
+    dfa_train_accuracy = scipy.ndimage.filters.gaussian_filter1d(stats_dfa['train_accuracy'], sigma=10)
+    bp_train_accuracy = scipy.ndimage.filters.gaussian_filter1d(stats_bp['train_accuracy'], sigma=10)
+    plt.plot(np.arange(len(stats_dfa['train_accuracy'])), dfa_train_accuracy)
+    plt.plot(np.arange(len(stats_bp['train_accuracy'])), bp_train_accuracy)
+    plt.legend(['train accuracy dfa', 'train accuracy bp'], loc='lower right')
     plt.grid(True)
     plt.show()
 
-    step_to_time_bp = stats_bp['total_time'] / len(stats_bp['train_loss'])
-    step_to_time_dfa = step_to_time_bp * stats_dfa['total_time'] / stats_bp['total_time']
+    # Forward, regularization, update and validation passes are excactly the same operations for dfa and bp. Therefore
+    # they should take euqally long. To ensure that inequalities don't affect the result, we normalize the time here.
+    # The reference time is the one measured for bp.
+    total_time_bp = stats_bp['total_time']
+    total_time_dfa = total_time_bp - stats_bp['backward_time'] + stats_dfa['backward_time']
+    step_to_time_bp = total_time_bp / len(stats_bp['train_loss'])
+    step_to_time_dfa = step_to_time_bp * total_time_dfa / stats_bp['total_time']
 
     plt.title('Loss vs time')
     plt.xlabel('time')
     plt.ylabel('loss')
-    plt.plot(np.arange(len(stats_dfa['train_loss'])) * step_to_time_dfa, stats_dfa['train_loss'])
-    plt.plot(np.asarray(stats_dfa['valid_step']) * step_to_time_dfa, stats_dfa['valid_loss'])
-    plt.plot(np.arange(len(stats_bp['train_loss'])) * step_to_time_bp, stats_bp['train_loss'])
-    plt.plot(np.asarray(stats_bp['valid_step']) * step_to_time_bp, stats_bp['valid_loss'])
-    plt.legend(['train loss dfa', 'validation loss dfa', 'train loss bp', 'validation loss bp'], loc='upper right')
+    # plt.plot(np.arange(len(stats_dfa['train_loss'])) * step_to_time_dfa, stats_dfa['train_loss'])
+    # plt.plot(np.arange(len(stats_bp['train_loss'])) * step_to_time_bp, stats_bp['train_loss'])
+    dfa_train_loss = scipy.ndimage.filters.gaussian_filter1d(stats_dfa['train_loss'], sigma=10)
+    bp_train_loss = scipy.ndimage.filters.gaussian_filter1d(stats_bp['train_loss'], sigma=10)
+    plt.plot(np.arange(len(stats_dfa['train_loss'])) * step_to_time_dfa, dfa_train_loss)
+    plt.plot(np.arange(len(stats_bp['train_loss'])) * step_to_time_bp, bp_train_loss)
+    plt.legend(['train loss dfa', 'train loss bp'], loc='best')
     plt.grid(True)
     plt.show()
 
     plt.title('Accuracy vs time')
     plt.xlabel('time')
     plt.ylabel('accuracy')
-    plt.plot(np.arange(len(stats_dfa['train_accuracy'])) * step_to_time_dfa, stats_dfa['train_accuracy'])
-    plt.plot(np.asarray(stats_dfa['valid_step']) * step_to_time_dfa, stats_dfa['valid_accuracy'])
-    plt.plot(np.arange(len(stats_bp['train_accuracy'])) * step_to_time_bp, stats_bp['train_accuracy'])
-    plt.plot(np.asarray(stats_bp['valid_step']) * step_to_time_bp, stats_bp['valid_accuracy'])
-    plt.legend(['train accuracy dfa', 'validation accuracy dfa', 'train accuracy bp', 'validation accuracy bp'], loc='lower right')
+    # plt.plot(np.arange(len(stats_dfa['train_accuracy'])) * step_to_time_dfa, stats_dfa['train_accuracy'])
+    # plt.plot(np.arange(len(stats_bp['train_accuracy'])) * step_to_time_bp, stats_bp['train_accuracy'])
+    dfa_train_accuracy = scipy.ndimage.filters.gaussian_filter1d(stats_dfa['train_accuracy'], sigma=10)
+    bp_train_accuracy = scipy.ndimage.filters.gaussian_filter1d(stats_bp['train_accuracy'], sigma=10)
+    plt.plot(np.arange(len(stats_dfa['train_accuracy'])) * step_to_time_dfa, dfa_train_accuracy)
+    plt.plot(np.arange(len(stats_bp['train_accuracy'])) * step_to_time_bp, bp_train_accuracy)
+    plt.legend(['train accuracy dfa', 'train accuracy bp'], loc='lower right')
     plt.grid(True)
     plt.show()
