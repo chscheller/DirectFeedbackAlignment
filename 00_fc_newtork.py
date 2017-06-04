@@ -17,13 +17,49 @@ from network.optimizer import GDMomentumOptimizer
 
 if __name__ == '__main__':
     """
+    Goal: Compare DFA and BP training performances with respect to loss, accuracy and 
+    training time on a fully connected NN
+    
+    Initial learning rate, regularization and learning rate decay parameters were evaluated
+    by hand by comparing the training performance on the validation set for various 
+    parameter combinations
+    
+    DFA:
+    ------------------------------------
+    Result:
+    ------------------------------------
+    loss on test set: 1.4419548950901127
+    accuracy on test set: 0.5045
+    
+    Train statisistics:
+    ------------------------------------
+    time spend during forward pass: 153.39858412742615
+    time spend during backward pass: 196.8211522102356
+    time spend during update pass: 246.54469919204712
+    time spend in total: 1082.2560546398163
+    
+    BP:
+    ------------------------------------
+    Result:
+    ------------------------------------
+    loss on test set: 1.6210799549655157
+    accuracy on test set: 0.4367
+    
+    Train statisistics:
+    ------------------------------------
+    time spend during forward pass: 142.29144406318665
+    time spend during backward pass: 294.4345464706421
+    time spend during update pass: 245.75644183158875
+    time spend in total: 1178.3628904819489
+
+
+    
     Train statistics DFA:
     ------------------------------------
     time spend during forward pass: 186.65376925468445
     time spend during backward pass: 196.10941076278687
     time spend during update pass: 144.07492351531982
     time spend in total: 752.406553030014
-    
     Train statistics BP:
     ------------------------------------
     time spend during forward pass: 187.12717700004578
@@ -31,15 +67,10 @@ if __name__ == '__main__':
     time spend during update pass: 152.84005665779114
     time spend in total: 911.1534883975983
     
-    
-    
-    Initial learning rate, regularization and learning rate decay parameters were evaluated
-    by hand by comparing the training performance on the validation set for various 
-    parameter combinations
     """
     freeze_support()
 
-    num_iteration = 20
+    num_iteration = 2
     data = dataset.cifar10_dataset.load()
 
     layers = [
@@ -51,35 +82,6 @@ if __name__ == '__main__':
         FullyConnected(size=500, activation=activation.tanh),
         FullyConnected(size=10, activation=None, last_layer=True)
     ]
-
-    # -------------------------------------------------------
-    # Train with DFA
-    # -------------------------------------------------------
-
-    model = Model(
-        layers=layers,
-        num_classes=10,
-        optimizer=GDMomentumOptimizer(lr=3*1e-3, mu=0.9),
-        regularization=0.09,
-        lr_decay=0.5,
-        lr_decay_interval=3
-    )
-
-    print("\nRun training:\n------------------------------------")
-
-    stats_dfa = model.train(data_set=data, method='dfa', num_passes=num_iteration, batch_size=64)
-    loss, accuracy = model.cost(*data.test_set())
-
-    print("\nResult:\n------------------------------------")
-    print('loss on test set: {}'.format(loss))
-    print('accuracy on test set: {}'.format(accuracy))
-
-    print("\nTrain statisistics:\n------------------------------------")
-
-    print("time spend during forward pass: {}".format(stats_dfa['forward_time']))
-    print("time spend during backward pass: {}".format(stats_dfa['backward_time']))
-    print("time spend during update pass: {}".format(stats_dfa['update_time']))
-    print("time spend in total: {}".format(stats_dfa['total_time']))
 
     # -------------------------------------------------------
     # Train with BP
@@ -109,8 +111,39 @@ if __name__ == '__main__':
 
     print("time spend during forward pass: {}".format(stats_bp['forward_time']))
     print("time spend during backward pass: {}".format(stats_bp['backward_time']))
+    print("time spend during l2 regularization: {}".format(stats_bp['regularization_time']))
     print("time spend during update pass: {}".format(stats_bp['update_time']))
     print("time spend in total: {}".format(stats_bp['total_time']))
+
+    # -------------------------------------------------------
+    # Train with DFA
+    # -------------------------------------------------------
+
+    model = Model(
+        layers=layers,
+        num_classes=10,
+        optimizer=GDMomentumOptimizer(lr=3*1e-3, mu=0.9),
+        regularization=0.09,
+        lr_decay=0.5,
+        lr_decay_interval=3
+    )
+
+    print("\nRun training:\n------------------------------------")
+
+    stats_dfa = model.train(data_set=data, method='dfa', num_passes=num_iteration, batch_size=64)
+    loss, accuracy = model.cost(*data.test_set())
+
+    print("\nResult:\n------------------------------------")
+    print('loss on test set: {}'.format(loss))
+    print('accuracy on test set: {}'.format(accuracy))
+
+    print("\nTrain statisistics:\n------------------------------------")
+
+    print("time spend during forward pass: {}".format(stats_dfa['forward_time']))
+    print("time spend during backward pass: {}".format(stats_dfa['backward_time']))
+    print("time spend during l2 regularization: {}".format(stats_dfa['regularization_time']))
+    print("time spend during update pass: {}".format(stats_dfa['update_time']))
+    print("time spend in total: {}".format(stats_dfa['total_time']))
 
     plt.title('Loss function')
     plt.xlabel('epoch')

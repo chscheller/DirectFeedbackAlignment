@@ -2,6 +2,7 @@ import multiprocessing
 from typing import Iterable
 
 import numpy as np
+import numba as nb
 import time
 
 from dataset.dataset import DataSet
@@ -48,6 +49,13 @@ class Back(object):
             return self.optim.update(layer, dW, db)
         else:
             return layer
+
+
+@nb.jit(nopython=True)
+def l2(dW: np.ndarray, regularization: float, W: np.ndarray) -> float:
+    dW += regularization * W
+    return np.sum(np.square(W))
+
 
 class Model(object):
     def __init__(
@@ -140,6 +148,7 @@ class Model(object):
 
         statistics = {
             'forward_time': 0,
+            'regularization_time': 0,
             'backward_time': 0,
             'update_time': 0,
             'total_time': 0,
@@ -202,15 +211,18 @@ class Model(object):
                 statistics['backward_time'] += time.time() - start_backward_time
 
                 """ regularization (L2) """
+                start_regularization_time = time.time()
                 if self.regularization > 0:
                     reg_term = 0
                     for layer, dW, db in gradients:
                         if layer.has_weights():
                             dW += self.regularization * layer.W
                             reg_term += np.sum(np.square(layer.W))
+                            # reg_term += l2(dW, self.regularization, layer.W)
                     reg_term *= self.regularization / 2.
                     reg_term /= y_batch.shape[0]
                     loss += reg_term
+                statistics['regularization_time'] += time.time() - start_regularization_time
 
                 """ update """
                 start_update_time = time.time()

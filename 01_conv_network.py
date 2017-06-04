@@ -16,11 +16,14 @@ from network.optimizer import GDMomentumOptimizer
 
 if __name__ == '__main__':
     """
+    
+    
+    
     ------------------------------------
     DFA
     ------------------------------------
     Result:
-------------------------------------
+    ------------------------------------
     loss on test set: 1.5317771647628007
     accuracy on test set: 0.4463
     

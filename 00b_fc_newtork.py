@@ -2,22 +2,18 @@ from multiprocessing import freeze_support
 
 import matplotlib.pyplot as plt
 import numpy as np
-import time
 
 import dataset.cifar10_dataset
 
-from network import activation, weight_initializer
+from network import activation
 from network.layers.conv_to_fully_connected import ConvToFullyConnected
-from network.layers.convolution_im2col import Convolution
-from network.layers.dropout import Dropout
 from network.layers.fully_connected import FullyConnected
-from network.layers.max_pool import MaxPool
 from network.model import Model
 from network.optimizer import GDMomentumOptimizer
 
 if __name__ == '__main__':
     """
-    Comparison of training only: validation / test not relevant
+    Goal: same as 00_fc_network but comparison of training only: validation / test not relevant
     """
     freeze_support()
 

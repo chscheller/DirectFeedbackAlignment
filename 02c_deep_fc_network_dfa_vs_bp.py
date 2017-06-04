@@ -17,7 +17,7 @@ if __name__ == '__main__':
               ('purple', 'magenta'), ('gray', 'black')]
     depths = [10, 15, 20, 30, 50, 100]
     iterations = [5, 5, 5, 10, 15, 20]
-    iterations = [2] * 6
+    iterations = ([2] * 5) + [4]
 
     data = dataset.mnist_dataset.load('dataset/mnist')
     statistics = []
