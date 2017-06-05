@@ -68,7 +68,7 @@ if __name__ == '__main__':
     """
     freeze_support()
 
-    num_iteration = 2
+    num_iteration = 20
     data = dataset.cifar10_dataset.load()
 
     layers = [
@@ -88,8 +88,8 @@ if __name__ == '__main__':
     model = Model(
         layers=layers,
         num_classes=10,
-        optimizer=GDMomentumOptimizer(lr=1e-3, mu=0.9),
-        regularization=0.003,
+        optimizer=GDMomentumOptimizer(lr=1e-2, mu=0.9),
+        regularization=0.01,
         # optimizer=GDMomentumOptimizer(lr=1e-2, mu=0.9),
         # regularization=0.0015,
         lr_decay=0.5,
@@ -186,6 +186,69 @@ if __name__ == '__main__':
     plt.plot(np.asarray(stats_dfa['valid_step']) * step_to_time_dfa, stats_dfa['valid_accuracy'])
     plt.plot(np.arange(len(stats_bp['train_accuracy'])) * step_to_time_bp, stats_bp['train_accuracy'])
     plt.plot(np.asarray(stats_bp['valid_step']) * step_to_time_bp, stats_bp['valid_accuracy'])
+    plt.legend(['train accuracy dfa', 'validation accuracy dfa', 'train accuracy bp', 'validation accuracy bp'], loc='lower right')
+    plt.grid(True)
+    plt.show()
+
+
+    # smoothed curves
+
+    plt.title('Loss vs epoch')
+    plt.xlabel('epoch')
+    plt.ylabel('loss')
+    dfa_train_loss = scipy.ndimage.filters.gaussian_filter1d(stats_dfa['train_loss'], sigma=10)
+    bp_train_loss = scipy.ndimage.filters.gaussian_filter1d(stats_bp['train_loss'], sigma=10)
+    plt.plot(np.arange(len(stats_dfa['train_loss'])), dfa_train_loss)
+    plt.plot(stats_dfa['valid_step'], stats_dfa['valid_loss'])
+    plt.plot(np.arange(len(stats_bp['train_loss'])), bp_train_loss)
+    plt.plot(stats_bp['valid_step'], stats_bp['valid_loss'])
+    plt.legend(['train accuracy dfa', 'validation accuracy dfa', 'train accuracy bp', 'validation accuracy bp'], loc='best')
+    plt.grid(True)
+    plt.show()
+
+    plt.title('Accuracy vs epoch')
+    plt.xlabel('epoch')
+    plt.ylabel('accuracy')
+    dfa_train_accuracy = scipy.ndimage.filters.gaussian_filter1d(stats_dfa['train_accuracy'], sigma=10)
+    bp_train_accuracy = scipy.ndimage.filters.gaussian_filter1d(stats_bp['train_accuracy'], sigma=10)
+    plt.plot(np.arange(len(stats_dfa['train_accuracy'])), dfa_train_accuracy)
+    plt.plot(stats_dfa['valid_step'], stats_dfa['valid_accuracy'])
+    plt.plot(np.arange(len(stats_bp['train_accuracy'])), bp_train_accuracy)
+    plt.plot(stats_bp['valid_step'], stats_bp['valid_accuracy'])
+    plt.legend(['train accuracy dfa', 'validation accuracy dfa', 'train accuracy bp', 'validation accuracy bp'], loc='best')
+    plt.grid(True)
+    plt.show()
+
+    # Forward, regularization, update and validation passes are excactly the same operations for dfa and bp. Therefore
+    # they should take euqally long. To ensure that inequalities don't affect the result, we normalize the time here.
+    # The reference time is the one measured for bp.
+    total_time_bp = stats_bp['total_time']
+    total_time_dfa = total_time_bp - stats_bp['backward_time'] + stats_dfa['backward_time']
+    step_to_time_bp = total_time_bp / len(stats_bp['train_loss'])
+    step_to_time_dfa = step_to_time_bp * total_time_dfa / stats_bp['total_time']
+
+    plt.title('Loss vs time')
+    plt.xlabel('time')
+    plt.ylabel('loss')
+    dfa_train_loss = scipy.ndimage.filters.gaussian_filter1d(stats_dfa['train_loss'], sigma=10)
+    bp_train_loss = scipy.ndimage.filters.gaussian_filter1d(stats_bp['train_loss'], sigma=10)
+    plt.plot(np.arange(len(stats_dfa['train_loss'])) * step_to_time_dfa, dfa_train_loss)
+    plt.plot(np.asarray(stats_dfa['valid_step']) * step_to_time_dfa, stats_dfa['valid_loss'])
+    plt.plot(np.arange(len(stats_bp['train_loss'])) * step_to_time_bp, bp_train_loss)
+    plt.plot(np.asarray(stats_bp['valid_step']) * step_to_time_bp, stats_bp['valid_loss'])
+    plt.legend(['train loss dfa', 'validation loss dfa', 'train loss bp', 'validation loss bp'], loc='best')
+    plt.grid(True)
+    plt.show()
+
+    plt.title('Accuracy vs time')
+    plt.xlabel('time')
+    plt.ylabel('accuracy')
+    dfa_train_accuracy = scipy.ndimage.filters.gaussian_filter1d(stats_dfa['train_accuracy'], sigma=10)
+    bp_train_accuracy = scipy.ndimage.filters.gaussian_filter1d(stats_bp['train_accuracy'], sigma=10)
+    plt.plot(np.arange(len(stats_dfa['train_accuracy'])) * step_to_time_dfa, dfa_train_accuracy)
+    plt.plot(stats_dfa['valid_step'], stats_dfa['valid_accuracy'])
+    plt.plot(np.arange(len(stats_bp['train_accuracy'])) * step_to_time_bp, bp_train_accuracy)
+    plt.plot(stats_bp['valid_step'], stats_bp['valid_accuracy'])
     plt.legend(['train accuracy dfa', 'validation accuracy dfa', 'train accuracy bp', 'validation accuracy bp'], loc='lower right')
     plt.grid(True)
     plt.show()
