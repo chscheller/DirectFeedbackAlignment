@@ -67,3 +67,5 @@ class __LeakyReLU(Activation):
 
 tanh = __TanH()
 softmax = __Softmax()
+relu = __ReLU()
+leaky_relu = __LeakyReLU()
