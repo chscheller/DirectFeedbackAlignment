@@ -39,5 +39,31 @@ class __Softmax(Activation):
         raise Exception("Not yet implemented!")
 
 
+@jitclass([])
+class __ReLU(Activation):
+
+    def __init__(self) -> None:
+        pass
+
+    def forward(self, x: np.ndarray) -> np.ndarray:
+        return np.maximum(x, 0, x)
+
+    def backward(self, x: np.ndarray) -> np.ndarray:
+        return (x > 0).astype(int)
+
+
+@jitclass([])
+class __LeakyReLU(Activation):
+
+    def __init__(self) -> None:
+        pass
+
+    def forward(self, x: np.ndarray) -> np.ndarray:
+        return np.maximum(x, 0.01 * x, x)
+
+    def backward(self, x: np.ndarray) -> np.ndarray:
+        return 0.01 + 0.99 * (x > 0)
+
+
 tanh = __TanH()
 softmax = __Softmax()
