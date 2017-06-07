@@ -69,8 +69,6 @@ if __name__ == '__main__':
     FINAL
     -------
     
-    C:\Users\Christian\Anaconda3\python.exe C:/Users/Christian/Documents/FHNW/Semester6/woipv/DirectFeedbackAlignment/00_fc_newtork.py
-
 Run training:
 ------------------------------------
 
@@ -2979,9 +2977,6 @@ time spend in total: 1088.0380308628082
 
 Process finished with exit code 0
 
-    
-    
-    
     """
     freeze_support()
 
@@ -3119,7 +3114,7 @@ Process finished with exit code 0
     plt.plot(stats_dfa['valid_step'], stats_dfa['valid_loss'])
     plt.plot(np.arange(len(stats_bp['train_loss'])), bp_train_loss)
     plt.plot(stats_bp['valid_step'], stats_bp['valid_loss'])
-    plt.legend(['train accuracy dfa', 'validation accuracy dfa', 'train accuracy bp', 'validation accuracy bp'], loc='best')
+    plt.legend(['train loss dfa', 'validation loss dfa', 'train loss bp', 'validation loss bp'], loc='best')
     plt.grid(True)
     plt.show()
 

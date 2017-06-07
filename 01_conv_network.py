@@ -2,6 +2,8 @@ from multiprocessing import freeze_support
 
 import matplotlib.pyplot as plt
 import numpy as np
+import scipy.interpolate
+import scipy.ndimage.filters
 
 import dataset.cifar10_dataset
 
@@ -52,7 +54,7 @@ if __name__ == '__main__':
 
     freeze_support()
 
-    num_iteration = 1
+    num_iteration = 20
 
     data = dataset.cifar10_dataset.load()
 
@@ -86,82 +88,33 @@ if __name__ == '__main__':
     ]
 
     # -------------------------------------------------------
-    # Train with DFA
-    # -------------------------------------------------------
-
-    model = Model(
-        layers=layers,
-        num_classes=10,
-        optimizer=GDMomentumOptimizer(lr=1.5*1e-2, mu=0.9),
-        # regularization=0.001,
-        lr_decay=0.5,
-        lr_decay_interval=3
-    )
-
-    print("\nRun training:\n------------------------------------")
-
-    stats_dfa = model.train(data_set=data, method='bp', num_passes=num_iteration, batch_size=64)
-    loss, accuracy = model.cost(*data.test_set())
-
-    print("\nResult:\n------------------------------------")
-    print('loss on test set: {}'.format(loss))
-    print('accuracy on test set: {}'.format(accuracy))
-
-    print("\nTrain statisistics:\n------------------------------------")
-
-    print("time spend during forward pass: {}".format(stats_dfa['forward_time']))
-    print("time spend during backward pass: {}".format(stats_dfa['backward_time']))
-    print("time spend during update pass: {}".format(stats_dfa['update_time']))
-    print("time spend in total: {}".format(stats_dfa['total_time']))
-
-    # plt.title('Loss function')
-    # plt.xlabel('epoch')
-    # plt.ylabel('loss')
-    # plt.plot(np.arange(len(stats_dfa['train_loss'])), stats_dfa['train_loss'])
-    # plt.plot(stats_dfa['valid_step'], stats_dfa['valid_loss'])
-    # plt.legend(['train loss dfa', 'validation loss dfa'], loc='upper right')
-    # plt.grid(True)
-    # plt.show()
-
-    # plt.title('Accuracy')
-    # plt.xlabel('epoch')
-    # plt.ylabel('accuracy')
-    # plt.plot(np.arange(len(stats_dfa['train_accuracy'])), stats_dfa['train_accuracy'])
-    # plt.plot(stats_dfa['valid_step'], stats_dfa['valid_accuracy'])
-    # plt.legend(['train accuracy dfa', 'validation accuracy dfa'], loc='lower right')
-    # plt.grid(True)
-    # plt.show()
-
-    exit()
-
-    # -------------------------------------------------------
     # Train with BP
     # -------------------------------------------------------
 
-    model = Model(
-        layers=layers,
-        num_classes=10,
-        optimizer=GDMomentumOptimizer(lr=1e-2, mu=0.9),
-        regularization=0.001,
-        lr_decay=0.5,
-        lr_decay_interval=5
-    )
+    # model = Model(
+    #     layers=layers,
+    #     num_classes=10,
+    #     optimizer=GDMomentumOptimizer(lr=1e-2, mu=0.9),
+    #     regularization=0.001,
+    #     lr_decay=0.5,
+    #     lr_decay_interval=5
+    # )
 
-    print("\nRun training:\n------------------------------------")
+    # print("\nRun training:\n------------------------------------")
 
-    stats_bp = model.train(data_set=data, method='bp', num_passes=num_iteration, batch_size=64)
-    loss, accuracy = model.cost(*data.test_set())
+    # stats_bp = model.train(data_set=data, method='bp', num_passes=num_iteration, batch_size=64)
+    # loss, accuracy = model.cost(*data.test_set())
 
-    print("\nResult:\n------------------------------------")
-    print('loss on test set: {}'.format(loss))
-    print('accuracy on test set: {}'.format(accuracy))
+    # print("\nResult:\n------------------------------------")
+    # print('loss on test set: {}'.format(loss))
+    # print('accuracy on test set: {}'.format(accuracy))
 
-    print("\nTrain statisistics:\n------------------------------------")
+    # print("\nTrain statisistics:\n------------------------------------")
 
-    print("time spend during forward pass: {}".format(stats_bp['forward_time']))
-    print("time spend during backward pass: {}".format(stats_bp['backward_time']))
-    print("time spend during update pass: {}".format(stats_bp['update_time']))
-    print("time spend in total: {}".format(stats_bp['total_time']))
+    # print("time spend during forward pass: {}".format(stats_bp['forward_time']))
+    # print("time spend during backward pass: {}".format(stats_bp['backward_time']))
+    # print("time spend during update pass: {}".format(stats_bp['update_time']))
+    # print("time spend in total: {}".format(stats_bp['total_time']))
 
     # plt.title('Loss function')
     # plt.xlabel('epoch')
@@ -181,14 +134,47 @@ if __name__ == '__main__':
     # plt.grid(True)
     # plt.show()
 
+    # -------------------------------------------------------
+    # Train with DFA
+    # -------------------------------------------------------
+
+    model = Model(
+        # layers=layers,
+        # num_classes=10,
+        # optimizer=GDMomentumOptimizer(lr=1.5*1e-2, mu=0.9),
+        # # regularization=0.001,
+        # lr_decay=0.5,
+        # lr_decay_interval=3
+        layers=layers,
+        num_classes=10,
+        optimizer=GDMomentumOptimizer(lr=5*1e-3, mu=0.9),
+        # regularization=0.001,
+        # lr_decay=0.5,
+        # lr_decay_interval=3
+    )
+
+    print("\nRun training:\n------------------------------------")
+
+    stats_dfa = model.train(data_set=data, method='dfa', num_passes=num_iteration, batch_size=64)
+    loss, accuracy = model.cost(*data.test_set())
+
+    print("\nResult:\n------------------------------------")
+    print('loss on test set: {}'.format(loss))
+    print('accuracy on test set: {}'.format(accuracy))
+
+    print("\nTrain statisistics:\n------------------------------------")
+
+    print("time spend during forward pass: {}".format(stats_dfa['forward_time']))
+    print("time spend during backward pass: {}".format(stats_dfa['backward_time']))
+    print("time spend during update pass: {}".format(stats_dfa['update_time']))
+    print("time spend in total: {}".format(stats_dfa['total_time']))
+
     plt.title('Loss function')
     plt.xlabel('epoch')
     plt.ylabel('loss')
     plt.plot(np.arange(len(stats_dfa['train_loss'])), stats_dfa['train_loss'])
     plt.plot(stats_dfa['valid_step'], stats_dfa['valid_loss'])
-    plt.plot(np.arange(len(stats_bp['train_loss'])), stats_bp['train_loss'])
-    plt.plot(stats_bp['valid_step'], stats_bp['valid_loss'])
-    plt.legend(['train loss dfa', 'validation loss dfa', 'train loss bp', 'validation loss bp'], loc='upper right')
+    plt.legend(['train loss dfa', 'validation loss dfa'], loc='upper right')
     plt.grid(True)
     plt.show()
 
@@ -197,8 +183,34 @@ if __name__ == '__main__':
     plt.ylabel('accuracy')
     plt.plot(np.arange(len(stats_dfa['train_accuracy'])), stats_dfa['train_accuracy'])
     plt.plot(stats_dfa['valid_step'], stats_dfa['valid_accuracy'])
-    plt.plot(np.arange(len(stats_bp['train_accuracy'])), stats_bp['train_accuracy'])
-    plt.plot(stats_bp['valid_step'], stats_bp['valid_accuracy'])
-    plt.legend(['train accuracy dfa', 'validation accuracy dfa', 'train accuracy bp', 'validation accuracy bp'], loc='lower right')
+    plt.legend(['train accuracy dfa', 'validation accuracy dfa'], loc='lower right')
     plt.grid(True)
     plt.show()
+
+    exit()
+
+    # plt.title('Loss function')
+    # plt.xlabel('epoch')
+    # plt.ylabel('loss')
+    # dfa_train_loss = scipy.ndimage.filters.gaussian_filter1d(stats_dfa['train_loss'], sigma=10)
+    # bp_train_loss = scipy.ndimage.filters.gaussian_filter1d(stats_bp['train_loss'], sigma=10)
+    # plt.plot(np.arange(len(stats_dfa['train_loss'])), bp_train_loss)
+    # plt.plot(stats_dfa['valid_step'], stats_dfa['valid_loss'])
+    # plt.plot(np.arange(len(stats_bp['train_loss'])), bp_train_loss)
+    # plt.plot(stats_bp['valid_step'], stats_bp['valid_loss'])
+    # plt.legend(['train loss dfa', 'validation loss dfa', 'train loss bp', 'validation loss bp'], loc='upper right')
+    # plt.grid(True)
+    # plt.show()
+
+    # plt.title('Accuracy')
+    # plt.xlabel('epoch')
+    # plt.ylabel('accuracy')
+    # dfa_train_accuracy = scipy.ndimage.filters.gaussian_filter1d(stats_dfa['train_accuracy'], sigma=10)
+    # bp_train_accuracy = scipy.ndimage.filters.gaussian_filter1d(stats_bp['train_accuracy'], sigma=10)
+    # plt.plot(np.arange(len(stats_dfa['train_accuracy'])), dfa_train_accuracy)
+    # plt.plot(stats_dfa['valid_step'], stats_dfa['valid_accuracy'])
+    # plt.plot(np.arange(len(stats_bp['train_accuracy'])), bp_train_accuracy)
+    # plt.plot(stats_bp['valid_step'], stats_bp['valid_accuracy'])
+    # plt.legend(['train accuracy dfa', 'validation accuracy dfa', 'train accuracy bp', 'validation accuracy bp'], loc='lower right')
+    # plt.grid(True)
+    # plt.show()
