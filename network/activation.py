@@ -6,7 +6,7 @@ class Activation(object):
     def forward(self, x: np.ndarray) -> np.ndarray:
         pass
 
-    def backward(self, x: np.ndarray) -> np.ndarray:
+    def gradient(self, x: np.ndarray) -> np.ndarray:
         pass
 
 
@@ -19,7 +19,7 @@ class __TanH(Activation):
     def forward(self, x: np.ndarray) -> np.ndarray:
         return np.tanh(x)
 
-    def backward(self, x: np.ndarray) -> np.ndarray:
+    def gradient(self, x: np.ndarray) -> np.ndarray:
         # noinspection PyTypeChecker
         return 1 - np.power(x, 2)
 
@@ -34,7 +34,7 @@ class __Softmax(Activation):
         exp = np.exp(x)
         return exp / np.sum(exp, axis=1, keepdims=True)
 
-    def backward(self, x: np.ndarray) -> np.ndarray:
+    def gradient(self, x: np.ndarray) -> np.ndarray:
         # TODO
         raise Exception("Not yet implemented!")
 
@@ -48,7 +48,7 @@ class __Sigmoid(Activation):
     def forward(self, x: np.ndarray) -> np.ndarray:
         return 1.0 / (1.0 + np.exp(-x))
 
-    def backward(self, x: np.ndarray) -> np.ndarray:
+    def gradient(self, x: np.ndarray) -> np.ndarray:
         return x * (1 - x)
 
 
@@ -61,7 +61,7 @@ class __ReLU(Activation):
     def forward(self, x: np.ndarray) -> np.ndarray:
         return np.maximum(x, 0, x)
 
-    def backward(self, x: np.ndarray) -> np.ndarray:
+    def gradient(self, x: np.ndarray) -> np.ndarray:
         return x > 0
 
 
@@ -74,7 +74,7 @@ class __LeakyReLU(Activation):
     def forward(self, x: np.ndarray) -> np.ndarray:
         return np.maximum(x, 0.01 * x, x)
 
-    def backward(self, x: np.ndarray) -> np.ndarray:
+    def gradient(self, x: np.ndarray) -> np.ndarray:
         return 0.01 + 0.99 * (x > 0)
 
 

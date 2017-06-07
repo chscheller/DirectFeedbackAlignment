@@ -94,7 +94,7 @@ class Convolution(Layer):
         n_f, c_f, h_f, w_f = self.W.shape
         n_e, c_e, h_e, w_e = E.shape
 
-        delta = E * (self.a_out if self. activation is None else self.activation.backward(self.a_out))
+        delta = E * (self.a_out if self. activation is None else self.activation.gradient(self.a_out))
         X_padded = np.lib.pad(self.a_in, ((0, 0), (0, 0), (self.padding, self.padding), (self.padding, self.padding)),
                               'constant', constant_values=0)
 
@@ -119,7 +119,7 @@ class Convolution(Layer):
         dX = np.zeros(self.a_in.shape)
         dW = np.zeros(self.W.shape)
 
-        delta = E * (self.a_out if self. activation is None else self.activation.backward(self.a_out))
+        delta = E * (self.a_out if self. activation is None else self.activation.gradient(self.a_out))
         X_padded = np.lib.pad(self.a_in, ((0, 0), (0, 0), (self.padding, self.padding), (self.padding, self.padding)),
                               'constant', constant_values=0)
         dX_padded = np.lib.pad(dX, ((0, 0), (0, 0), (self.padding, self.padding), (self.padding, self.padding)),

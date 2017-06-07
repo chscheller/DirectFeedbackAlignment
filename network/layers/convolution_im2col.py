@@ -89,7 +89,7 @@ class Convolution(Layer):
         if self.activation is None:
             E *= self.a_out
         else:
-            E *= self.activation.backward(self.a_out)
+            E *= self.activation.gradient(self.a_out)
         # delta = E * (self.a_out if self.activation is None else self.activation.backward(self.a_out))
 
         dW = E.transpose((1, 2, 3, 0)).reshape(n_f, -1).dot(self.x_cols.T).reshape(self.W.shape)
@@ -107,7 +107,7 @@ class Convolution(Layer):
         if self.activation is None:
             E *= self.a_out
         else:
-            E *= self.activation.backward(self.a_out)
+            E *= self.activation.gradient(self.a_out)
         # delta = E * (self.a_out if self.activation is None else self.activation.backward(self.a_out))
         delta_reshaped = E.transpose((1, 2, 3, 0)).reshape(n_f, -1)
 

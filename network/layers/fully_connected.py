@@ -59,7 +59,7 @@ class FullyConnected(Layer):
         if self.dropout_rate > 0:
             E *= self.dropout_mask
         if self.activation is not None:
-            E *= self.activation.backward(self.a_out)
+            E *= self.activation.gradient(self.a_out)
         dW = np.dot(self.a_in.T, E)
         db = np.sum(E, axis=0)
         return dW, db
@@ -68,7 +68,7 @@ class FullyConnected(Layer):
         if self.dropout_rate > 0:
             E *= self.dropout_mask
         if self.activation is not None:
-            E *= self.activation.backward(self.a_out)
+            E *= self.activation.gradient(self.a_out)
         dX = E.dot(self.W.T)
         dW = np.dot(self.a_in.T, E)
         db = np.sum(E, axis=0)

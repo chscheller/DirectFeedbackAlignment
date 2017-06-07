@@ -16,14 +16,14 @@ from network.weight_initializer import RandomNormal, RandomUniform
 if __name__ == '__main__':
     freeze_support()
 
-    colors = ['blue', 'red', 'black', 'blue', 'red', 'black', 'blue', 'red', 'black']
+    colors = ['#6666ff', '#ff6666', '#66ff66', '#0000ff', '#ff0000', '#00ff00', '#000099', '#990000', '#009900']
     lines = ['-', '-', '-', '--', '--', '--', ':', ':', ':']
     layer_sizes = [
         [800] * 2,
         [400] * 10,
         [240] * 50
     ]
-    iterations = [1] * 3
+    iterations = [4] * 3
 
     data = dataset.mnist_dataset.load('dataset/mnist')
     statistics = []
@@ -39,7 +39,7 @@ if __name__ == '__main__':
         model = Model(
             layers=layers,
             num_classes=10,
-            optimizer=GDMomentumOptimizer(lr=1e-3, mu=0.9)
+            optimizer=GDMomentumOptimizer(lr=1e-2, mu=0.9)
         )
 
         print("\nRun training:\n------------------------------------")
@@ -65,13 +65,16 @@ if __name__ == '__main__':
     for layer_size, num_passes in zip(layer_sizes, iterations):
         layers = [ConvToFullyConnected()]
         for size in layer_size:
-            layers.append(FullyConnected(size=size, activation=activation.sigmoid))
+            layers.append(FullyConnected(
+                size=size,
+                activation=activation.sigmoid
+            ))
         layers.append(FullyConnected(size=10, activation=None, last_layer=True))
 
         model = Model(
             layers=layers,
             num_classes=10,
-            optimizer=GDMomentumOptimizer(lr=1e-3, mu=0.9)
+            optimizer=GDMomentumOptimizer(lr=1e-2, mu=0.9)
         )
 
         print("\nRun training:\n------------------------------------")
