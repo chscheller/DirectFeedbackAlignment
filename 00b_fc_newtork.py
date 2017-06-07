@@ -38,52 +38,6 @@ if __name__ == '__main__':
     ]
 
     # -------------------------------------------------------
-    # Train with DFA
-    # -------------------------------------------------------
-
-    model = Model(
-        layers=layers,
-        num_classes=10,
-        optimizer=GDMomentumOptimizer(lr=1e-3, mu=0.9),
-        lr_decay=0.5,
-        lr_decay_interval=5
-    )
-
-    print("\nRun training:\n------------------------------------")
-
-    stats_dfa = model.train(data_set=data, method='dfa', num_passes=num_iteration, batch_size=64)
-    loss, accuracy = model.cost(*data.test_set())
-
-    print("\nResult:\n------------------------------------")
-    print('loss on test set: {}'.format(loss))
-    print('accuracy on test set: {}'.format(accuracy))
-
-    print("\nTrain statisistics:\n------------------------------------")
-
-    print("time spend during forward pass: {}".format(stats_dfa['forward_time']))
-    print("time spend during backward pass: {}".format(stats_dfa['backward_time']))
-    print("time spend during update pass: {}".format(stats_dfa['update_time']))
-    print("time spend in total: {}".format(stats_dfa['total_time']))
-
-    # plt.title('Loss function')
-    # plt.xlabel('epoch')
-    # plt.ylabel('loss')
-    # plt.plot(np.arange(len(stats_dfa['train_loss'])), stats_dfa['train_loss'])
-    # plt.legend(['train loss dfa'], loc='best')
-    # plt.grid(True)
-    # plt.show()
-
-    # plt.title('Accuracy')
-    # plt.xlabel('epoch')
-    # plt.ylabel('accuracy')
-    # plt.plot(np.arange(len(stats_dfa['train_accuracy'])), stats_dfa['train_accuracy'])
-    # plt.legend(['train accuracy dfa'], loc='best')
-    # plt.grid(True)
-    # plt.show()
-
-    # exit()
-
-    # -------------------------------------------------------
     # Train with BP
     # -------------------------------------------------------
 
@@ -124,6 +78,52 @@ if __name__ == '__main__':
     # plt.ylabel('accuracy')
     # plt.plot(np.arange(len(stats_bp['train_accuracy'])), stats_bp['train_accuracy'])
     # plt.legend(['train accuracy bp'], loc='best')
+    # plt.grid(True)
+    # plt.show()
+
+    # exit()
+
+    # -------------------------------------------------------
+    # Train with DFA
+    # -------------------------------------------------------
+
+    model = Model(
+        layers=layers,
+        num_classes=10,
+        optimizer=GDMomentumOptimizer(lr=1e-3, mu=0.9),
+        lr_decay=0.5,
+        lr_decay_interval=5
+    )
+
+    print("\nRun training:\n------------------------------------")
+
+    stats_dfa = model.train(data_set=data, method='dfa', num_passes=num_iteration, batch_size=64)
+    loss, accuracy = model.cost(*data.test_set())
+
+    print("\nResult:\n------------------------------------")
+    print('loss on test set: {}'.format(loss))
+    print('accuracy on test set: {}'.format(accuracy))
+
+    print("\nTrain statisistics:\n------------------------------------")
+
+    print("time spend during forward pass: {}".format(stats_dfa['forward_time']))
+    print("time spend during backward pass: {}".format(stats_dfa['backward_time']))
+    print("time spend during update pass: {}".format(stats_dfa['update_time']))
+    print("time spend in total: {}".format(stats_dfa['total_time']))
+
+    # plt.title('Loss function')
+    # plt.xlabel('epoch')
+    # plt.ylabel('loss')
+    # plt.plot(np.arange(len(stats_dfa['train_loss'])), stats_dfa['train_loss'])
+    # plt.legend(['train loss dfa'], loc='best')
+    # plt.grid(True)
+    # plt.show()
+
+    # plt.title('Accuracy')
+    # plt.xlabel('epoch')
+    # plt.ylabel('accuracy')
+    # plt.plot(np.arange(len(stats_dfa['train_accuracy'])), stats_dfa['train_accuracy'])
+    # plt.legend(['train accuracy dfa'], loc='best')
     # plt.grid(True)
     # plt.show()
 

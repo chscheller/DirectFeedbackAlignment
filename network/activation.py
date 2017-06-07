@@ -49,7 +49,7 @@ class __ReLU(Activation):
         return np.maximum(x, 0, x)
 
     def backward(self, x: np.ndarray) -> np.ndarray:
-        return (x > 0).astype(int)
+        return x > 0
 
 
 @jitclass([])
