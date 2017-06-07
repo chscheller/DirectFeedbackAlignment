@@ -40,6 +40,19 @@ class __Softmax(Activation):
 
 
 @jitclass([])
+class __Sigmoid(Activation):
+
+    def __init__(self) -> None:
+        pass
+
+    def forward(self, x: np.ndarray) -> np.ndarray:
+        return 1.0 / (1.0 + np.exp(-x))
+
+    def backward(self, x: np.ndarray) -> np.ndarray:
+        return x * (1 - x)
+
+
+@jitclass([])
 class __ReLU(Activation):
 
     def __init__(self) -> None:
@@ -67,5 +80,6 @@ class __LeakyReLU(Activation):
 
 tanh = __TanH()
 softmax = __Softmax()
+sigmoid = __Sigmoid()
 relu = __ReLU()
 leaky_relu = __LeakyReLU()

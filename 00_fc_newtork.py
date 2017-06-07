@@ -3025,6 +3025,24 @@ Process finished with exit code 0
     print("time spend during update pass: {}".format(stats_bp['update_time']))
     print("time spend in total: {}".format(stats_bp['total_time']))
 
+    # plt.title('Loss function')
+    # plt.xlabel('epoch')
+    # plt.ylabel('loss')
+    # plt.plot(np.arange(len(stats_bp['train_loss'])), stats_bp['train_loss'])
+    # plt.legend(['train loss bp'], loc='best')
+    # plt.grid(True)
+    # plt.show()
+
+    # plt.title('Accuracy')
+    # plt.xlabel('epoch')
+    # plt.ylabel('accuracy')
+    # plt.plot(np.arange(len(stats_bp['train_accuracy'])), stats_bp['train_accuracy'])
+    # plt.legend(['train accuracy bp'], loc='best')
+    # plt.grid(True)
+    # plt.show()
+
+    # exit()
+
     # -------------------------------------------------------
     # Train with DFA
     # -------------------------------------------------------

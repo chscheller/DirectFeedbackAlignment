@@ -54,7 +54,7 @@ if __name__ == '__main__':
 
     freeze_support()
 
-    num_iteration = 20
+    num_iteration = 10
 
     data = dataset.cifar10_dataset.load()
 
@@ -147,7 +147,7 @@ if __name__ == '__main__':
         # lr_decay_interval=3
         layers=layers,
         num_classes=10,
-        optimizer=GDMomentumOptimizer(lr=5*1e-3, mu=0.9),
+        optimizer=GDMomentumOptimizer(lr=1e-3, mu=0.9),
         # regularization=0.001,
         # lr_decay=0.5,
         # lr_decay_interval=3

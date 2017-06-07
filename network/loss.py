@@ -15,6 +15,8 @@ class SoftmaxCrossEntropyLoss(Loss):
         # larget_than_threshold = (abs_x > threshold)
         # x *= (np.abs(larget_than_threshold - 1)) + (larget_than_threshold * threshold / abs_x)
 
+        # print("min: {}, max: {}".format(np.min(x), np.max(x)))
+
         exp = np.exp(x)
         probs = exp / np.sum(exp, axis=1, keepdims=True)
         correct_logprobs = -np.log(probs[range(n), y])
