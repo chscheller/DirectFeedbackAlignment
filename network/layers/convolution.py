@@ -63,16 +63,9 @@ class Convolution(Layer):
         x_padded = np.lib.pad(X, ((0, 0), (0, 0), (self.padding, self.padding), (self.padding, self.padding)),
                               'constant', constant_values=0)
 
-        # for i in range(n_in):  # for each input X
-        #    for j in range(n_f):  # for each filter
-        #        for h in range(h_out):
-        #            for w in range(w_out):
-        #                z[i, j, h, w] = np.sum(x_padded[i, :, h * self.stride:h * self.stride + h_f,
-        #                                        w * self.stride:w * self.stride + w_f] * self.W[j]) + self.b[j]
-
         for h in range(self.h_out):
             for w in range(self.w_out):
-                for j in range(n_f):  # for each filter
+                for j in range(n_f):
                     z[:, j, h, w] = np.sum(
                         x_padded[:, :, h * self.stride:h * self.stride + h_f, w * self.stride:w * self.stride + w_f] *
                         self.W[j], axis=(1, 2, 3)) + self.b[j]
@@ -80,7 +73,6 @@ class Convolution(Layer):
         self.a_in = X
         self.a_out = z if self.activation is None else self.activation.forward(z)
         if mode == 'train' and self.dropout_rate > 0:
-            # self.dropout_mask = np.random.binomial(size=self.a_out.shape, n=1, p=1 - self.dropout_rate)
             self.dropout_mask = (np.random.rand(*self.a_out.shape) > self.dropout_rate).astype(int)
             self.a_out *= self.dropout_mask
         return self.a_out
@@ -124,17 +116,6 @@ class Convolution(Layer):
                               'constant', constant_values=0)
         dX_padded = np.lib.pad(dX, ((0, 0), (0, 0), (self.padding, self.padding), (self.padding, self.padding)),
                                'constant', constant_values=0)
-
-        # for i in range(n_x):
-        #    for h in range(h_e):
-        #        for w in range(w_e):
-        #            for j in range(n_f):
-        #                dW[j] += delta[i, j, h, w] * X_padded[i, :, h*self.stride:h*self.stride+h_f, w*self.stride:w*self.stride+w_f]
-        #            # print("dX shape: {}".format(dX[i, :, h*self.stride:h*self.stride+h_f, w*self.stride:w*self.stride+w_f].shape))
-        #            # print("W shape: {}".format(self.W[j].shape))
-        #            # print("delta shape: {}".format(delta[i, j, h, w].shape))
-        #            dX_padded[i, :, h*self.stride:h*self.stride+h_f, w*self.stride:w*self.stride+w_f] += self.W[j] *\
-        #                                                                                              delta[i, j, h, w]
 
         for h in range(h_e):
             for w in range(w_e):

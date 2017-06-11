@@ -30,7 +30,8 @@ class FullyConnected(Layer):
 
         # initialize weights
         if self.weight_initializer is None:
-            self.W = np.random.uniform(low=-1 / np.sqrt(input_size), high=1 / np.sqrt(input_size), size=(input_size, self.size))
+            # self.W = np.random.uniform(low=-1 / np.sqrt(input_size), high=1 / np.sqrt(input_size), size=(input_size, self.size))
+            self.W = np.random.randn(input_size, self.size) * (1 / np.sqrt(input_size))
         else:
             self.W = self.weight_initializer.init(dim=(input_size, self.size))
 
@@ -69,7 +70,7 @@ class FullyConnected(Layer):
             E *= self.dropout_mask
         if self.activation is not None:
             E *= self.activation.gradient(self.a_out)
-        dX = E.dot(self.W.T)
+        dX = np.dot(E, self.W.T)
         dW = np.dot(self.a_in.T, E)
         db = np.sum(E, axis=0)
         return dX, dW, db

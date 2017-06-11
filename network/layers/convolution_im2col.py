@@ -4,6 +4,7 @@ from network.activation import Activation
 from network.layer import Layer
 from network.utils.im2col_cython import im2col_cython, col2im_cython
 
+
 class Convolution(Layer):
     def __init__(self, filter_shape, stride, padding, dropout_rate: float = 0, activation: Activation = None,
                  last_layer=False, weight_initializer=None, fb_weight_initializer=None) -> None:
@@ -90,7 +91,6 @@ class Convolution(Layer):
             E *= self.a_out
         else:
             E *= self.activation.gradient(self.a_out)
-        # delta = E * (self.a_out if self.activation is None else self.activation.backward(self.a_out))
 
         dW = E.transpose((1, 2, 3, 0)).reshape(n_f, -1).dot(self.x_cols.T).reshape(self.W.shape)
         db = np.sum(E, axis=(0, 2, 3))
@@ -108,7 +108,6 @@ class Convolution(Layer):
             E *= self.a_out
         else:
             E *= self.activation.gradient(self.a_out)
-        # delta = E * (self.a_out if self.activation is None else self.activation.backward(self.a_out))
         delta_reshaped = E.transpose((1, 2, 3, 0)).reshape(n_f, -1)
 
         dX_cols = self.W.reshape(n_f, -1).T.dot(delta_reshaped)
