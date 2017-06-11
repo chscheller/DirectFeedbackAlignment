@@ -34,7 +34,7 @@ def load_labels(full_path):
         return np.asarray(labels)
 
 
-def load(path: str='mnist', valid_size: int=5000, mean_subtraction=True, normalization=True):
+def load(path: str='dataset/mnist', valid_size: int=5000, mean_subtraction=True, normalization=True):
     images_train_valid = load_images(os.path.join(path, train_images_filename))
     labels_train_valid = load_labels(os.path.join(path, train_labels_filename))
 

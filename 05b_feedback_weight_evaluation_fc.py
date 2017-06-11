@@ -10,6 +10,10 @@ from network.model import Model
 from network.optimizer import GDMomentumOptimizer
 
 if __name__ == '__main__':
+    """
+    Goal: Compare 
+    """
+
     freeze_support()
 
     num_hidden_units = 240

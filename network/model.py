@@ -1,8 +1,6 @@
-import multiprocessing
 from typing import Iterable
 
 import numpy as np
-import numba as nb
 import time
 
 from dataset.dataset import DataSet
@@ -10,17 +8,6 @@ from network.utils import data
 from network.layer import Layer
 from network.loss import SoftmaxCrossEntropyLoss, Loss
 from network.optimizer import GDOptimizer, Optimizer
-
-
-class DFA(object):
-    def __init__(self, e: np.ndarray) -> None:
-        self.e = e
-
-    def __call__(self, layer: Layer) -> tuple:
-        dW, db = layer.dfa(self.e)
-        # print("dW: {}, db: {}".format(dW, db))
-        # return (layer,) + layer.dfa(self.e)
-        return layer, dW, db
 
 
 class UpdateLayer(object):
@@ -33,28 +20,6 @@ class UpdateLayer(object):
             return self.optimizer.update(layer, dW, db)
         else:
             return layer
-
-
-class Back(object):
-    def __init__(self, delta, reg, optim: Optimizer) -> None:
-        self.optim = optim
-        self.reg = reg
-        self.delta = delta
-
-    def __call__(self, layer) -> Layer:
-        if layer.has_weights():
-            dW, db = layer.dfa(self.delta)
-            if self.reg > 0:
-                dW += self.reg * layer.W
-            return self.optim.update(layer, dW, db)
-        else:
-            return layer
-
-
-@nb.jit(nopython=True)
-def l2(dW: np.ndarray, regularization: float, W: np.ndarray) -> float:
-    dW += regularization * W
-    return np.sum(np.square(W))
 
 
 class Model(object):
@@ -75,6 +40,22 @@ class Model(object):
         self.lr_decay_interval = lr_decay_interval
         self.regularization = regularization
         self.loss = loss
+        self.statistics = {}
+        self.__init_statistics()
+
+    def __init_statistics(self):
+        self.statistics = {
+            'forward_time': 0,
+            'regularization_time': 0,
+            'backward_time': 0,
+            'update_time': 0,
+            'total_time': 0,
+            'train_loss': [],
+            'train_accuracy': [],
+            'valid_step': [],
+            'valid_loss': [],
+            'valid_accuracy': [],
+        }
 
     def cost(self, X, y):
         n = X.shape[0]
@@ -137,7 +118,7 @@ class Model(object):
                 diff = np.linalg.norm(dW_approx - dW_unrolled)/np.linalg.norm(dW_approx + dW_unrolled)
                 print("layer '{}', relative difference: {}".format(type(layer), diff))
 
-    def train(self, data_set: DataSet, method: str, num_passes: int=2000, batch_size: int=128, verbose: bool=True):
+    def train(self, data_set: DataSet, method: str, num_passes: int=20, batch_size: int=128, verbose: bool=True):
 
         if verbose:
             print(
@@ -145,19 +126,6 @@ class Model(object):
                 '\nnum_passes: {}'.format(num_passes),
                 '\nbatch_size: {}\n'.format(batch_size)
             )
-
-        statistics = {
-            'forward_time': 0,
-            'regularization_time': 0,
-            'backward_time': 0,
-            'update_time': 0,
-            'total_time': 0,
-            'train_loss': [],
-            'train_accuracy': [],
-            'valid_step': [],
-            'valid_loss': [],
-            'valid_accuracy': [],
-        }
 
         start_total_time = time.time()
 
@@ -168,6 +136,7 @@ class Model(object):
         input_size = X_train[0].shape
         for layer in self.layers:
             input_size = layer.initialize(input_size, self.num_classes, method)
+            layer.reset_params()
 
         step = 0
         for epoch in range(num_passes):
@@ -175,7 +144,6 @@ class Model(object):
             """ decay learning rate if necessary """
             if self.lr_decay > 0 and epoch > 0 and (epoch % self.lr_decay_interval) == 0:
                 self.optimizer.decay_learning_rate(self.lr_decay)
-
                 if verbose:
                     print("Decreased learning rate by {}".format(self.lr_decay))
 
@@ -186,7 +154,7 @@ class Model(object):
                 start_forward_time = time.time()
                 for layer in self.layers:
                     X_batch = layer.forward(X_batch, mode='train')
-                statistics['forward_time'] += time.time() - start_forward_time
+                self.statistics['forward_time'] += time.time() - start_forward_time
 
                 """ loss """
                 loss, delta = self.loss.calculate(X_batch, y_batch)
@@ -195,8 +163,6 @@ class Model(object):
                 gradients = []
                 start_backward_time = time.time()
                 if method == 'dfa':
-                    # gradients = pool.map(DFA(delta), self.layers)
-                    # self.layers = pool.map(Back(delta, self.regularization, self.optimizer), self.layers)
                     for layer in self.layers:
                         dW, db = layer.dfa(delta)
                         gradients.append((layer, dW, db))
@@ -208,7 +174,7 @@ class Model(object):
                     gradients.reverse()
                 else:
                     raise ValueError("Invalid train method '{}'".format(method))
-                statistics['backward_time'] += time.time() - start_backward_time
+                self.statistics['backward_time'] += time.time() - start_backward_time
 
                 """ regularization (L2) """
                 start_regularization_time = time.time()
@@ -218,22 +184,21 @@ class Model(object):
                         if layer.has_weights():
                             dW += self.regularization * layer.W
                             reg_term += np.sum(np.square(layer.W))
-                            # reg_term += l2(dW, self.regularization, layer.W)
                     reg_term *= self.regularization / 2.
                     reg_term /= y_batch.shape[0]
                     loss += reg_term
-                statistics['regularization_time'] += time.time() - start_regularization_time
+                self.statistics['regularization_time'] += time.time() - start_regularization_time
 
                 """ update """
                 start_update_time = time.time()
                 update = UpdateLayer(self.optimizer)
                 self.layers = [update(x) for x in gradients]
-                statistics['update_time'] += time.time() - start_update_time
+                self.statistics['update_time'] += time.time() - start_update_time
 
                 """ log statistics """
                 accuracy = (np.argmax(X_batch, axis=1) == y_batch).sum() / y_batch.shape[0]
-                statistics['train_loss'].append(loss)
-                statistics['train_accuracy'].append(accuracy)
+                self.statistics['train_loss'].append(loss)
+                self.statistics['train_accuracy'].append(accuracy)
 
                 if (step % 10) == 0 and verbose:
                     print("epoch {}, step {}, loss = {:07.5f}, accuracy = {}".format(epoch, step, loss, accuracy))
@@ -242,21 +207,15 @@ class Model(object):
 
             """ log statistics """
             valid_loss, valid_accuracy = self.cost(X_valid, y_valid)
-            statistics['valid_step'].append(step)
-            statistics['valid_loss'].append(valid_loss)
-            statistics['valid_accuracy'].append(valid_accuracy)
+            self.statistics['valid_step'].append(step)
+            self.statistics['valid_loss'].append(valid_loss)
+            self.statistics['valid_accuracy'].append(valid_accuracy)
 
             if verbose:
                 print("validation after epoch {}: loss = {:07.5f}, accuracy = {}".format(epoch, valid_loss, valid_accuracy))
 
-        statistics['total_time'] = time.time() - start_total_time
-        return statistics
-
-    def test(self, X, y):
-        prediction = self.predict(X)
-        n = X.shape[0]
-        correct = (prediction == y).sum()
-        print("accuracy: {}".format(correct/n))
+        self.statistics['total_time'] = time.time() - start_total_time
+        return self.statistics
 
     @staticmethod
     def store(self, model: 'Model', file_name: str) -> None:
@@ -267,4 +226,3 @@ class Model(object):
     def load(self, file_name: str) -> 'Model':
         # TODO
         pass
-

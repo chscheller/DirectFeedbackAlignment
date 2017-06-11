@@ -21,6 +21,9 @@ class Layer:
     def back_prob(self, E: np.ndarray) -> tuple:
         pass
 
+    def reset_params(self) -> None:
+        self.params.clear()
+
     def has_weights(self) -> bool:
         return False
 
