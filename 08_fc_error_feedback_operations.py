@@ -27,6 +27,7 @@ def op_bp(l: list):
 if __name__ == '__main__':
 
     l = [784, 500, 500, 500, 500, 500, 10]
+    # l = [32*32*3, 1000, 1000, 1000, 10]
 
     total_dfa = op_dfa(l)
     total_bp = op_bp(l)

@@ -1,6 +1,8 @@
 from multiprocessing import freeze_support
 import matplotlib.pyplot as plt
 import numpy as np
+import scipy.ndimage.filters
+import scipy.interpolate
 
 import dataset.mnist_dataset
 import dataset.cifar10_dataset
@@ -14,48 +16,46 @@ from network.optimizer import GDMomentumOptimizer
 if __name__ == '__main__':
     freeze_support()
 
-    num_hidden_units = 240
+    num_hidden_units = 500
+    num_hidden_layers = 5
+    num_passes = 30
 
-    data = dataset.mnist_dataset.load('dataset/mnist')
-    # data = dataset.cifar10_dataset.load()
+    # data = dataset.mnist_dataset.load('dataset/mnist')
+    data = dataset.cifar10_dataset.load()
 
     initializers = [
-        # weight_initializer.Fill(0),
-        # weight_initializer.Fill(1e-3),
-        # weight_initializer.Fill(1),
-        # weight_initializer.Fill(100),
-        # weight_initializer.RandomUniform(-1, 1),
-        # weight_initializer.RandomUniform(-1/np.sqrt(num_hidden_units), 1/np.sqrt(num_hidden_units)),
-        # weight_initializer.RandomUniform(-1/num_hidden_units, 1/num_hidden_units),
-        # weight_initializer.RandomUniform(-100, 100),
-        # weight_initializer.RandomNormal(1, 0),
-        weight_initializer.RandomNormal(1/np.sqrt(num_hidden_units)),
-        weight_initializer.RandomNormal(3/np.sqrt(num_hidden_units)),
-        weight_initializer.RandomNormal(1/(3 * np.sqrt(num_hidden_units))),
+        weight_initializer.Fill(0),
+        weight_initializer.Fill(1e-3),
+        weight_initializer.Fill(1),
+        weight_initializer.RandomUniform(-1, 1),
+        weight_initializer.RandomUniform(-1/np.sqrt(num_hidden_units), 1/np.sqrt(num_hidden_units)),
+        weight_initializer.RandomUniform(-1/num_hidden_units, 1/num_hidden_units),
+        weight_initializer.RandomNormal(1, 0),
+        weight_initializer.RandomNormal(1 / np.sqrt(num_hidden_units))
+    ]
+
+    labels = [
+        'Fill(0)',
+        'Fill(0.001)',
+        'Fill(1)',
+        'Uniform(low=-1, high=1)',
+        'Uniform(low=-1/sqrt(fan_out), high=1/sqrt(fan_out))',
+        'Uniform(low=-1/fan_out, high=1/fan_out)',
+        'Normal(sigma=1, mu=0)',
+        'Normal(sigma=1/sqrt(fan_out), mu=0)',
     ]
 
     statistics = []
-
     for initializer in initializers:
-        layers = [
-            ConvToFullyConnected(),
-            FullyConnected(size=num_hidden_units, activation=activation.tanh, weight_initializer=initializer),
-            FullyConnected(size=num_hidden_units, activation=activation.tanh, weight_initializer=initializer),
-            FullyConnected(size=num_hidden_units, activation=activation.tanh, weight_initializer=initializer),
-            FullyConnected(size=num_hidden_units, activation=activation.tanh, weight_initializer=initializer),
-            FullyConnected(size=num_hidden_units, activation=activation.tanh, weight_initializer=initializer),
-            FullyConnected(size=num_hidden_units, activation=activation.tanh, weight_initializer=initializer),
-            FullyConnected(size=num_hidden_units, activation=activation.tanh, weight_initializer=initializer),
-            FullyConnected(size=10, activation=None, last_layer=True)
-        ]
+        layers = [ConvToFullyConnected()]
+        for i in range(num_hidden_layers):
+            layers += [FullyConnected(size=num_hidden_units, activation=activation.tanh, weight_initializer=initializer)]
+        layers += [FullyConnected(size=10, activation=None, last_layer=True)]
 
         model = Model(
             layers=layers,
             num_classes=10,
-            optimizer=GDMomentumOptimizer(lr=1e-4, mu=0.9),
-            regularization=0.001,
-            # lr_decay=0.5,
-            # lr_decay_interval=100
+            optimizer=GDMomentumOptimizer(lr=1e-3, mu=0.9)
         )
 
         print("\n\n------------------------------------")
@@ -64,7 +64,7 @@ if __name__ == '__main__':
 
         print("\nRun training:\n------------------------------------")
 
-        stats = model.train(data_set=data, method='dfa', num_passes=3, batch_size=50)
+        stats = model.train(data_set=data, method='dfa', num_passes=num_passes, batch_size=50)
         loss, accuracy = model.cost(*data.test_set())
 
         print("\nResult:\n------------------------------------")
@@ -73,16 +73,12 @@ if __name__ == '__main__':
 
         statistics.append(stats)
 
-    plt.title('Loss function')
+    plt.title('Loss')
     plt.xlabel('epoch')
     plt.ylabel('loss')
-    labels = []
-    for i in range(len(initializers)):
-        stats = statistics[i]
-        plt.plot(np.arange(len(stats['train_loss'])), stats['train_loss'])
-        # plt.plot(stats['valid_step'], stats['valid_loss'])
-        labels.append("{}: train loss".format(initializers[i]))
-        # labels.append("{}: validation loss".format(initializers[i]))
+    for stats in statistics:
+        train_loss = scipy.ndimage.filters.gaussian_filter1d(stats['train_loss'], sigma=10)
+        plt.plot(np.arange(len(stats['train_loss'])), train_loss)
     plt.legend(labels, loc='upper right')
     plt.grid(True)
     plt.show()
@@ -90,12 +86,9 @@ if __name__ == '__main__':
     plt.title('Accuracy')
     plt.xlabel('epoch')
     plt.ylabel('accuracy')
-    for i in range(len(initializers)):
-        stats = statistics[i]
-        plt.plot(np.arange(len(stats['train_accuracy'])), stats['train_accuracy'])
-        # plt.plot(stats['valid_step'], stats['valid_accuracy'])
-        labels.append("{}: train accuracy".format(initializers[i]))
-        # labels.append("{}: validation accuracy".format(initializers[i]))
+    for stats in statistics:
+        train_accuracy = scipy.ndimage.filters.gaussian_filter1d(stats['train_accuracy'], sigma=10)
+        plt.plot(np.arange(len(stats['train_accuracy'])), train_accuracy)
     plt.legend(labels, loc='upper right')
     plt.grid(True)
     plt.show()

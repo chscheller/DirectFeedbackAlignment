@@ -44,7 +44,7 @@ if __name__ == '__main__':
     model = Model(
         layers=layers,
         num_classes=10,
-        optimizer=GDMomentumOptimizer(lr=1.5*1e-3, mu=0.9),
+        optimizer=GDMomentumOptimizer(lr=7*1e-3, mu=0.9),
     )
 
     print("\nRun training:\n------------------------------------")
