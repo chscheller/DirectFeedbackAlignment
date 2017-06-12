@@ -18,9 +18,6 @@ from network.optimizer import GDMomentumOptimizer
 
 if __name__ == '__main__':
     """
-    
-    
-    
     ------------------------------------
     DFA
     ------------------------------------
@@ -54,7 +51,7 @@ if __name__ == '__main__':
 
     freeze_support()
 
-    num_iteration = 10
+    num_iteration = 20
     data = dataset.cifar10_dataset.load()
 
     # layers = [
@@ -74,9 +71,8 @@ if __name__ == '__main__':
     # ]
 
     layers = [
-        Convolution((8, 3, 3, 3), stride=1, padding=1, dropout_rate=0, activation=activation.tanh),
         MaxPool(size=2, stride=2),
-        Convolution((16, 8, 3, 3), stride=1, padding=1, dropout_rate=0, activation=activation.tanh),
+        Convolution((16, 3, 3, 3), stride=1, padding=1, dropout_rate=0, activation=activation.tanh),
         MaxPool(size=2, stride=2),
         Convolution((16, 16, 3, 3), stride=1, padding=1, dropout_rate=0, activation=activation.tanh),
         MaxPool(size=2, stride=2),
@@ -95,7 +91,7 @@ if __name__ == '__main__':
         layers=layers,
         num_classes=10,
         optimizer=GDMomentumOptimizer(lr=1e-2, mu=0.9),
-        regularization=0.001,
+        # regularization=0.001,
         lr_decay=0.5,
         lr_decay_interval=5
     )

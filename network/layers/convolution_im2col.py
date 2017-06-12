@@ -47,9 +47,10 @@ class Convolution(Layer):
         # initialize feedback weights
         if self.fb_weight_initializer is None:
             sqrt_fan_out = np.sqrt(f * self.h_out * self.w_out)
-            self.B = np.random.uniform(low=-1 / sqrt_fan_out, high=1 / sqrt_fan_out, size=(num_classes, f, self.h_out, self.w_out))
+            # self.B = np.random.uniform(low=-1 / sqrt_fan_out, high=1 / sqrt_fan_out, size=(num_classes, f, self.h_out, self.w_out))
+            self.B = np.random.uniform(low=-1 / sqrt_fan_out, high=1 / sqrt_fan_out, size=(num_classes, f * self.h_out * self.w_out))
         else:
-            self.B = self.fb_weight_initializer.init(dim=(num_classes, f, self.h_out, self.w_out))
+            self.B = self.fb_weight_initializer.init(dim=(num_classes, f * self.h_out * self.w_out))
 
         # initialize bias units
         self.b = np.zeros(f)
@@ -80,12 +81,14 @@ class Convolution(Layer):
         return self.a_out
 
     def dfa(self, E: np.ndarray) -> tuple:
-        E = np.einsum('ij,jklm->iklm', E, self.B)
+        # E = np.einsum('ij,jklm->iklm', E, self.B)
+
+        n_f, c_f, h_f, w_f = self.W.shape
+
+        E = np.dot(E, self.B).reshape((-1, n_f, self.h_out, self.w_out))
 
         if self.dropout_rate > 0:
             E *= self.dropout_mask
-
-        n_f, c_f, h_f, w_f = self.W.shape
 
         if self.activation is None:
             E *= self.a_out

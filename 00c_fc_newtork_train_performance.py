@@ -6,6 +6,7 @@ import scipy.ndimage.filters
 import scipy.interpolate
 
 import dataset.cifar10_dataset
+import dataset.mnist_dataset
 
 from network import activation
 from network.layers.conv_to_fully_connected import ConvToFullyConnected
@@ -18,12 +19,13 @@ if __name__ == '__main__':
     """
     freeze_support()
 
-    num_iteration = 50
+    num_iteration = 30
     data = dataset.cifar10_dataset.load()
+    # data = dataset.mnist_dataset.load()
 
     layers = [
         ConvToFullyConnected(),
-        FullyConnected(size=1000, activation=activation.tanh),
+        FullyConnected(size=240, activation=activation.tanh),
         FullyConnected(size=10, activation=None, last_layer=True)
     ]
 
