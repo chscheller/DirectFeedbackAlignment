@@ -50,6 +50,7 @@ class Convolution(Layer):
             # self.B = np.random.uniform(low=-1 / sqrt_fan_out, high=1 / sqrt_fan_out, size=(num_classes, f, self.h_out, self.w_out))
             self.B = np.random.uniform(low=-1 / sqrt_fan_out, high=1 / sqrt_fan_out, size=(num_classes, f * self.h_out * self.w_out))
         else:
+            # self.B = self.fb_weight_initializer.init(dim=(num_classes, f, self.h_out, self.w_out))
             self.B = self.fb_weight_initializer.init(dim=(num_classes, f * self.h_out * self.w_out))
 
         # initialize bias units
@@ -86,7 +87,6 @@ class Convolution(Layer):
         n_f, c_f, h_f, w_f = self.W.shape
 
         E = np.dot(E, self.B).reshape((-1, n_f, self.h_out, self.w_out))
-
         if self.dropout_rate > 0:
             E *= self.dropout_mask
 

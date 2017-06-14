@@ -36,7 +36,7 @@ if __name__ == '__main__':
         'Uniform(low=-100, high=100)',
         'Normal(sigma=1, mu=0)',
         'Normal(sigma=1/sqrt(fan_out), mu=0)',
-        'Uniform(low=-100, high=100)',
+        'Normal(sigma=100, mu=0)',
     ]
 
     statistics = []
