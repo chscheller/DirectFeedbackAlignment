@@ -22,7 +22,7 @@ if __name__ == '__main__':
 
     freeze_support()
 
-    num_iteration = 30
+    num_iteration = 200
     data = dataset.cifar10_dataset.load()
 
     # layers = [
@@ -76,6 +76,8 @@ if __name__ == '__main__':
         layers=layers,
         num_classes=10,
         optimizer=GDMomentumOptimizer(lr=1e-2, mu=0.9),
+        lr_decay=0.5,
+        lr_decay_interval=50
     )
 
     print("\nRun training:\n------------------------------------")

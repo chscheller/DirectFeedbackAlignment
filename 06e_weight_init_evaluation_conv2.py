@@ -19,16 +19,18 @@ if __name__ == '__main__':
 
     data = dataset.cifar10_dataset.load()
 
-    initializers = [
-        weight_initializer.Fill(0),
-        weight_initializer.Fill(1e-3),
-        weight_initializer.Fill(1),
-        weight_initializer.RandomUniform(-1, 1),
-        weight_initializer.RandomUniform(-1 / np.sqrt(num_hidden_units), 1 / np.sqrt(num_hidden_units)),
-        weight_initializer.RandomUniform(-1 / num_hidden_units, 1 / num_hidden_units),
-        weight_initializer.RandomNormal(1, 0),
-        weight_initializer.RandomNormal(1 / np.sqrt(num_hidden_units))
-    ]
+    num_passes = 30
+
+    initializers = [[], [], [], [], [], [], []]
+
+    for i in [8*16*16, 16*8*8, 32*4*4]:
+        initializers[0].append(weight_initializer.Fill(0)),
+        initializers[1].append(weight_initializer.Fill(1e-3)),
+        initializers[2].append(weight_initializer.Fill(1)),
+        initializers[3].append(weight_initializer.RandomUniform(-1, 1))
+        initializers[4].append(weight_initializer.RandomUniform(-1/np.sqrt(i), 1/np.sqrt( i)))
+        initializers[5].append(weight_initializer.RandomNormal())
+        initializers[6].append(weight_initializer.RandomNormal(1/np.sqrt(i)))
 
     labels = [
         'Fill(0)',
@@ -36,7 +38,6 @@ if __name__ == '__main__':
         'Fill(1)',
         'Uniform(low=-1, high=1)',
         'Uniform(low=-1/sqrt(fan_out), high=1/sqrt(fan_out))',
-        'Uniform(low=-1/fan_out, high=1/fan_out)',
         'Normal(sigma=1, mu=0)',
         'Normal(sigma=1/sqrt(fan_out), mu=0)',
     ]
@@ -45,11 +46,11 @@ if __name__ == '__main__':
     for initializer in initializers:
         layers = [
             MaxPool(size=2, stride=2),
-            Convolution((8, 3, 3, 3), stride=1, padding=1, dropout_rate=0, activation=activation.tanh),
+            Convolution((8, 3, 3, 3), stride=1, padding=1, dropout_rate=0, activation=activation.tanh, weight_initializer=initializer[0]),
             MaxPool(size=2, stride=2),
-            Convolution((16, 8, 3, 3), stride=1, padding=1, dropout_rate=0, activation=activation.tanh),
+            Convolution((16, 8, 3, 3), stride=1, padding=1, dropout_rate=0, activation=activation.tanh, weight_initializer=initializer[1]),
             MaxPool(size=2, stride=2),
-            Convolution((32, 16, 3, 3), stride=1, padding=1, dropout_rate=0, activation=activation.tanh),
+            Convolution((32, 16, 3, 3), stride=1, padding=1, dropout_rate=0, activation=activation.tanh, weight_initializer=initializer[2]),
             MaxPool(size=2, stride=2),
             ConvToFullyConnected(),
             FullyConnected(size=64, activation=activation.tanh),
