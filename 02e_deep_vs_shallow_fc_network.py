@@ -24,7 +24,7 @@ if __name__ == '__main__':
 
     layers = [
         ConvToFullyConnected(),
-        FullyConnected(size=240, activation=activation.tanh),
+        FullyConnected(size=1000, activation=activation.tanh),
         FullyConnected(size=10, activation=None, last_layer=True)
     ]
 
@@ -36,8 +36,6 @@ if __name__ == '__main__':
         layers=layers,
         num_classes=10,
         optimizer=GDMomentumOptimizer(lr=1e-3, mu=0.9),
-        lr_decay=0.5,
-        lr_decay_interval=4
     )
 
     print("\nRun training:\n------------------------------------")
@@ -76,8 +74,8 @@ if __name__ == '__main__':
 
     layers = [ConvToFullyConnected()]
 
-    for i in range(10):
-        layers += [FullyConnected(size=240, activation=activation.tanh)]
+    for i in range(3):
+        layers += [FullyConnected(size=1000, activation=activation.tanh)]
 
     layers += [FullyConnected(size=10, activation=None, last_layer=True)]
 
@@ -89,8 +87,6 @@ if __name__ == '__main__':
         layers=layers,
         num_classes=10,
         optimizer=GDMomentumOptimizer(lr=1e-3, mu=0.9),
-        lr_decay=0.5,
-        lr_decay_interval=4
     )
 
     print("\nRun training:\n------------------------------------")
