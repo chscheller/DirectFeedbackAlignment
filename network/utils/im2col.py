@@ -1,3 +1,5 @@
+# from CS231n course assignment (http://cs231n.stanford.edu/)
+
 import numpy as np
 
 
