@@ -9,7 +9,7 @@ Small DNN framework with:
  - implementation of backward pass with dfa and backpropagation
  - customizable loss-function and optimizers (e.g. gd, momentum)
  
-Reproducible experiment and comparison scripts
+Reproducible experiments and comparisons
 
 ## Installation
 
